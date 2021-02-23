@@ -1,0 +1,617 @@
+SCRIPT DOCUMENTATION:
+=====================
+
+The purpose of this document is to explain the inner workings of sysb.ps1 script. It is intended for people familiar
+with Windows OS and concepts of PowerShell (PS) scripting with strong interest in MySQL and benchmarking.
+
+The aim of the script is to provide native, flexible and easy way of compiling, deploying and running benchmarks against
+MySQL Server/Cluster on Microsoft Windows. It is available in and compatible with our existing benchmarking package
+(https://dev.mysql.com/downloads/benchmarks.html) developed by Mikael Ronstrom.
+
+
+Known limitations of version 1:
+-------------------------------
+  o Only localhost deployment.
+  o Only Sysbench benchmarking tool.
+  o No standalone tests infrastructure.
+  o mysql/mysqldump command line tools used to load/dump databases.
+
+  
+Requirements:
+-------------
+Inside script folder ($SCRIPTDIR) there should be:
+  o MANDATORY sysb.ps1 PS script.
+  o MANDATORY autobench.conf; either created or copied from Linux tarball.
+  o MANDATORY MySql.Data.dll - core mySQL connector/NET.
+  o ICSharpCode.SharpZipLib.dll. compression/decompression library by Mike Krueger and John Reilly. You can
+  download it from http://icsharpcode.github.io/SharpZipLib/. IF you do not plan to use TAR archives, you do
+  not need this library.
+
+Inside the test folder ($TARBALLDIR) there should be:
+  o MANDATORY Either Server or Cluster tarball and Sysbench tarball. If it's source archive, it will be built
+  providing tools are installed (see notes).
+  o sysbench.conf file; either created or copied from Linux tarball.
+  o config.ini file for Cluster configuration.
+
+General:
+PowerShell v3+, MySQL Server v5.6+ and MySQL Cluster version 7.4+. Modified Sysbench tarball available at
+https://dev.mysql.com/downloads/benchmarks.html
+
+
+Getting started:
+----------------
+Download benchmark suite from https://dev.mysql.com/downloads/benchmarks.html and extract Windows portion into
+test directory ($TARBALLDIR). Move sysb.ps1 script, example autobench.conf, MySql.Data.dll and
+ICSharpCode.SharpZipLib.dll (if provided) into different folder ($SCRIPTDIR).
+
+Download MySQL Server/Cluster from http://dev.mysql.com/downloads/mysql/ or 
+http://dev.mysql.com/downloads/cluster/ and place them into $TARBALLDIR. 
+
+If you downloaded binary packages, you are set to go:
+  Set TARBALL_DIR variable in autobench.conf to point to your $TARBALLDIR
+  Start PowerShell(_ISE)
+  Check PS version and update if necessary (script requires v3 or newer):
+	Start PowerShell, check version:
+		PS C:\Users\...> $PSVersionTable
+		Name                           Value
+		----                           -----
+		CLRVersion                     2.0.50727.5485
+		BuildVersion                   6.1.7601.17514
+		PSVersion                      2.0
+		WSManStackVersion              2.0
+		PSCompatibleVersions           {1.0, 2.0}
+		SerializationVersion           1.1.0.1
+		PSRemotingProtocolVersion      2.1
+
+		If it is 2, update to v3 (at least) from:
+		http://www.microsoft.com/en-us/download/details.aspx?id=34595. Check requirements. Package for Windows 7
+		Service Pack 1 64-bit versions is WINDOWS6.1-KB2506143-x64.msu
+	Check your execution policy:
+		PS > Get-ExecutionPolicy
+		Unrestricted
+		Usually, it is set to "Restricted" thus preventing you from running the scripts. Please read
+		https://blog.netspi.com/15-ways-to-bypass-the-powershell-execution-policy/ before proceeding:
+		The PowerShell execution policy is the setting that determines which type of PowerShell scripts (if any)
+		can be run on the system. By default it is set to "Restricted", which basically means none. However,
+		it's important to understand that the setting was never meant to be a security control. Instead, it was
+		intended to prevent administrators from shooting themselves in the foot.
+  CD into $SCRIPTDIR.
+  Run the script (.\sysb.ps1). The test will run with predefined set of parameters for Sysbench and
+  auto-discover archives.
+
+For people who prefer to build their own binaries from sources:
+http://www.cmake.org
+http://sourceforge.net/projects/gnuwin32/files/bison
+https://www.visualstudio.com/en-us/products/visual-studio-community-vs
+http://sourceforge.net/projects/boost/files/boost-binaries/
+
+  Required software for building on Windows:
+    1) Visual studio (Express will do just fine):
+    http://www.microsoft.com/en-us/download/details.aspx?id=44914
+    Might require registration with MSDN.
+
+    2) CMAKE installer:
+    http://www.cmake.org/files/v3.0/cmake-3.0.2-win32-x86.exe (or newer)
+    Install somewhere with short path (ie. mine is in d:\CMake302)
+    
+	3) GNU Bison:
+    http://sourceforge.net/projects/gnuwin32/files/bison/2.4.1/bison-2.4.1-setup.exe/download
+    Install somewhere with short path (ie. mine is in c:\GnuWin32)
+
+    4) BOOST: MySQL 5.7 uses BOOST headers (1.58 ATM) which you can download from
+    http://sourceforge.net/projects/boost/files/boost-binaries/. Install somewhere with
+    short path (ie. mine is in C:\boost_1_58_0)
+
+    For convenience, add BOOST, CMAKE and BISON to PATH:
+      a) Right-click "My Computer", choose "Properties".
+      b) Click on "Advanced System settings".
+      c) Click on "Environment variables", find PATH.
+      d) Add "C:\boost_1_58_0;", "C:\GnuWin32\bin;" and "D:\CMake302\bin;". CMAKE might have done it during
+	  install.
+      e) For BOOST, and new variable:
+      Name:  WITH_BOOST
+      Value: C:\boost_1_58_0
+
+  Follow the regular instructions.
+
+
+What-If:
+--------
+  If ICSharpCode.SharpZipLib.dll or 7-zip are not provided you will not be able to process tar.gz archives.
+  If sysbench.conf is not provided, Sysbench will run with predefined set of parameters
+  (.\sysbench.exe --max-requests=10000 --max-time=20 --db-driver=mysql --test=oltp --mysql-user=root
+  --mysql-db=test).
+  If config.ini is not provided, script will create minimal one for mySQL Cluster.
+
+  The minimal autobench.conf has 2 entries in [GENERAL] section:
+  [GENERAL]
+  TARBALL_DIR=E:\test
+  CLUSTERNODES=2
+  You might wish to add BENCHMARK_TO_RUN=sysbench too.
+
+  The layout of $SCRIPTDIR:
+  PS > dir
+    Directory: C:\Users\user\Documents\WindowsPowerShell\testingfw
+
+  Mode                LastWriteTime     Length Name                                                            
+  ----                -------------     ------ ----                                                            
+  -a---         03.09.15.     12:00       8088 autobench.conf                                                  
+  -a---         07.05.14.     13:29     200704 ICSharpCode.SharpZipLib.dll                                     
+  -a---         17.02.15.     18:47     457216 MySql.Data.dll                                                  
+  -a---         07.09.15.     11:19     169292 sysb.ps1                                                        
+  -a---         05.09.15.     17:12      14675 Version-info.txt                                                
+
+  The layout of $TARBALLDIR:
+  PS > dir E:\test
+    Directory: E:\test
+  Mode                LastWriteTime     Length Name                                                            
+  ----                -------------     ------ ----                                                            
+  d----         03.09.15.     19:30            mysql-5.6.24-winx64                                             
+  d----         27.07.15.     20:35            sysbench-0.4.12.10                                              
+  -a---         27.07.15.     13:13       1090 config.ini                                                      
+  -a---         15.04.15.     18:02  366063432 mysql-5.6.24-winx64.zip                                         
+  -a---         07.04.15.     07:48     867859 sysbench-0.4.12.10.tar.gz                                       
+  -a---         12.08.15.     18:13       1668 sysbench.conf                                                   
+Note that MySQL and Sysbench archives are already extracted. This is allowed since script looks for ArchiveName
+directory when it encounters ArchiveName.ext archive and before extraction. It also checks that already existing 
+ArchiveName directory has required binaries.
+
+
+Detailed description of configuration files:
+--------------------------------------------
+autobench.conf (section names do not matter, in $SCRIPTDIR):
+[GENERAL]
+BENCHMARK_TO_RUN=sysbench
+Which benchmark to run since I will be adding more in the future.
+
+TARBALL_DIR=E:\test
+The directory with MySQL Server/Cluster tarball(s), Sysbench tarball, sysbench.conf and config.ini.
+
+SHOW_INNODB_STATUS=no
+If the engine is InnoDB then 'YES' will force issuing 'SHOW ENGINE INNODB STATUS;' query after each benchmark
+run and display the results on screen.
+
+TEST_DESCRIPTION=Some test desc
+Title to put in results file(s).
+
+CMAKE_GENERATOR=
+Generator to use with CMAKE. If nothing is provided then script will determine which available generator is the
+newest and use that. On my box, it is "Visual Studio 12 2013 Win64".
+
+CMAKEConfigure=-DWITH_NDB_JAVA=OFF -DWITH_NDB_TEST=OFF
+CMAKE configure line in case you want to control your build. If you did not put Boost in path, you might
+consider adding -DWITH_BOOST= Path\To\Boost too.
+
+CLUSTERNODES=2
+Number of Cluster data nodes to start.
+
+SYSBENCHTARBALL=sysbench-0.4.12.10.tar.gz
+The name of Sysbench tarball. If not provided, script will try to determine it by looking into $TARBALLDIR
+contents.
+
+MYSQLTARBALL=mysql-5.6.24-winx64.zip
+The name of MySQL Server tarball to use. If not provided, script will try to determine it by looking into $TARBALLDIR
+contents.
+
+CLUSTERTARBALL=mysql-cluster-gpl-7.4.5.zip
+The name of MySQL Cluster tarball to use. If not provided, script will try to determine it by looking into $TARBALLDIR
+contents.
+
+OPTIONDATAD=
+For subsequent runs, it is essential to have clean copy of datadir. While 5.6 Server/7.4 Cluster provide clean
+copy of datadir as a result of build process, 5.7 Server/7.5 cluster generate one during initial startup. In
+any case, "tainted" datadir is removed after the script finishes running benchmark.
+Available options here are:
+COPY_CLEAN
+Upon first start of Server/Cluster, copy the datadir provided to data_tg. When run finishes, script will delete
+datadir (data) and move the copy (data_tg) to data. Suitable for 5.6 Server/7.4 Cluster which come with datadir or 
+produce one during compilation.
+ALWAYS_CLEAN
+Datadir, if encountered, will be removed and fresh copy created with mysqld --initialize-insecure. Suitable for
+5.7 Server/7.5 Cluster.
+Gotcha's:
+  Using ALWAYS_CLEAN with 5.6 Server/7.4 Cluster will allow for just one run as it will remove datadir
+  when finished.
+  Using COPY_CLEAN with 5.7 Server/7.5 Cluster is meaningless as fresh copy is always available via
+  --initialize-insecure.
+Thus, if OPTIONDATAD=ALWAYS_CLEAN ==> no copy of datadir (ie. data_tg) is created. IF there is datadir present before deployment, it is deleted so that new one can be made with --initialize-insecure.
+IF OPTIONDATAD=COPY_CLEAN ==> AFTER new datadir has been created with --initialize-insecure, it is copied to data_tg (for 5.7). For 5.6, provided datadir (from build) is simply copied to data_tg, clean or not.
+
+ARCHIVERUN=YES
+Create a ZIP archive with all the output after the run finishes. This includes dump of PS screen (sessiondump),
+log produced by Sysbench (runlog), Sysbench log converted into CSV file (results.csv), log produced by mysqld
+(mysql) and, in case of Cluster, ndb_data. All of the files except resuolts.csv are tagged with timestamp.
+
+SBDUMPPREPED=YES
+Do the mysqldump of Sysbench prepared database. It is not really needed as "prepare" is fast enough.
+
+SBPREPEDDATA=data_sb.sql
+The name of Sysbench prepared dump. If the file exists in $TARBALL directory, script will use 
+mysql -uroot -Pxxx test < $SBPREPEDDATA instead of sysbench --options prepare.
+
+[NDBD DEFAULT]
+CLUSTERCL=--standalone --console
+
+[SERVER]
+SERVERCL=--standalone --console --innodb_buffer_pool_size=8G --innodb_buffer_pool_instances=12 --innodb_read_io_threads=8 --innodb_write_io_threads=8 --skip-innodb_adaptive_hash_index --innodb_log_buffer_size=512M --innodb_file_format=barracuda --innodb_log_file_size=2G --innodb_log_files_in_group=4 --innodb_purge_threads=4 --innodb_flush_log_at_trx_commit=2 --innodb_support_xa=0 --innodb_checksum_algorithm=NONE --innodb-doublewrite=0 --max_tmp_tables=100 --tmp_table_size=100M --max_heap_table_size=1000M --key_buffer_size=50M --join_buffer_size=1000000 --table_open_cache=4000 --table_definition_cache=4000 --table_open_cache_instances=16 --performance_schema=off --skip-grant-tables --sort_buffer_size=32768 --query_cache_size=0 --query_cache_type=0 --max_prepared_stmt_count=1048576 --max_connections=1000 --thread_cache_size=10000 --max_allowed_packet=512M
+
+
+sysbench.conf (In $TARBALLDIR):
+#Sysbench configuration used to drive sysbench benchmarks
+#Read from here, if fails deduce, write back here.
+SERVER_PORT="3316"
+This option is best left empty since script will try and determine first available port on the box. For Server,
+scan will start from 3000. For Cluster API node, it will start from 5000.
+
+#Macro definitions. Please use one at the time.
+RUN_RW="yes"/"no" ("" optional)
+Macro, if YES equals to --oltp-read-only=off
+
+RUN_RW_WRITE_INT="yes"/"no" ("" optional)
+Macro, if YES equals to --oltp-read-only=off --oltp-index-updates=10
+
+RUN_RW_LESS_READ=
+Macro, if YES equals to --oltp-read-only=off --oltp-point-selects=1 --oltp-range-size=5
+
+RUN_RO=
+Macro, if YES equals to --oltp-read-only=on
+
+RUN_RO_PS=
+Macro, if YES equals to --oltp-read-only=on --oltp-skip-trx=on --oltp-point-selects=1 --oltp-simple-ranges=0 --oltp-sum-ranges=0 --oltp-order-ranges=0 --oltp-distinct-ranges=0
+
+RUN_WRITE=
+Macro, if YES equals to --oltp-read-only=off --oltp-point-selects=0 --oltp-simple-ranges=0 --oltp-sum-ranges=0 --oltp-order-ranges=0 --oltp-distinct-ranges=0
+
+SB_USE_SECONDARY_INDEX="no"
+Equal to --oltp-secondary #[yes|no]/[on|off]
+
+SB_USE_MYSQL_HANDLER="no"
+Equal to --oltp-point-select-mysql-handler #[yes|no]/[on|off]
+
+SB_NUM_PARTITIONS="4"
+Equal to --oltp-num-partitions. Number of partitions used for each table. This implies Server/Cluster are
+always started with --new switch.
+
+SB_NUM_TABLES="12"
+Equal to --oltp-num-tables. Maximum is 16.
+
+THREAD_COUNTS_TO_RUN="12"
+Equal to --num-threads.
+
+ENGINE="innodb"
+Equal to --mysql-table-engine. Allowed values are 'myisam','innodb','bdb','heap','ndbcluster','ndb','federated'.
+
+SB_AVOID_DEADLOCKS="yes"
+Equals to --oltp-avoid-deadlocks #[yes|no]/[on|off]
+
+SB_USE_TRX="yes"
+Equals to negation of --oltp-skip-trx #[yes|no]/[on|off]
+
+SB_DIST_TYPE="uniform"
+Equals to --oltp-dist-type. Allowed values are 'uniform','gaussian','special'.  When 'special', then you can
+use SB_OLTP_DIST_PCT (= --oltp-dist-pct) and SB_OLTP_DIST_RES (= --oltp-dist-res).
+
+TRX_ENGINE="yes"
+Equals to --mysql-engine-trx.
+
+SB_POINT_SELECTS="10"
+Equals to --oltp-point-selects.
+
+SB_RANGE_SIZE="100"
+Equals to --oltp-range-size.
+
+SB_SIMPLE_RANGES="1"
+Equals to --oltp-simple-ranges.
+
+SB_SUM_RANGES="1"
+Equals to --oltp-sum-ranges.
+
+SB_ORDER_RANGES="1"
+Equals to --oltp-order-ranges.
+
+SB_DISTINCT_RANGES="1"
+Equals to --oltp-distinct-ranges.
+
+SB_USE_IN_STATEMENT="0"
+Equals to --oltp-use-in-statement.
+
+SB_USE_AUTO_INC="off"
+Equals to --oltp-auto-inc.
+
+MAX_TIME="50"
+Equals to --max-time.
+
+SB_TX_RATE=""
+Equals to --tx-rate
+
+SB_TX_JITTER=""
+Equals to --tx-jitter
+
+SYSBENCH_ROWS="10000"
+Equals to --oltp-table-size
+
+max_requests=0
+Equals to --max-requests. Leave at 0 for maximum possible.
+
+TEST_DESCRIPTION="mysql-cluster-gpl-7.5-mybuild"
+Description of the test being run. 
+
+NUM_TEST_RUNS="2"
+Number of times the script will run predefined Sysbench test.
+
+BETWEEN_RUNS="5"
+Number of seconds to sleep between consecutive runs of preconfigured Sysbench test.
+
+AFTER_INITIAL_RUN="5"
+Number of seconds to sleep after the first run of preconfigured Sysbench test.
+
+AFTER_SERVER_START="10"
+Number of seconds to sleep after Server starts. - Not used atm.
+
+BETWEEN_CREATE_DB_TEST="5"
+Number of seconds to sleep between attempts to create test database. - Not used atm.
+
+NUM_CREATE_DB_ATTEMPTS="4"
+Number of tries to create test database.
+
+AFTER_SERVER_STOP="10"
+Number of seconds to sleep after Server stops. - Not used atm.
+
+LOG_FILE=E:\test\runlog.log
+Where to log output from Sysbench. Default is $TARBALLDIR\runlog.log. After the run(s) finish, script will
+append timestamp to this name.
+
+RUN_AS_HARNESS=off
+IF NO/OFF, Sysbench will run in foreground which is preferable way for running benchmark.
+If YES/ON, Sysbench will switch to background run simulating load for any tests you might wish to run externally
+respecting the configuration details above.
+
+
+config.ini (In $TARBALLDIR, Cluster only, section names matter, script will correct for values passed in 
+autobench::CLUSTERCL and autobench::CLUSTERNODES) 
+[ndbd default]
+NoOfReplicas=1
+DataMemory=2048M
+IndexMemory=32M
+Diskless=1
+#DataDir= #For now, this is set dynamically by the script. Left here for testing purposes.
+MaxNoOfConcurrentTransactions=128
+MaxNoOfConcurrentOperations=1024
+# avoid swapping
+LockPagesInMainMemory=1
+RedoBuffer=32M
+[ndb_mgmd default]
+
+[mysqld default]
+
+[mysqld]
+
+[tcp default]
+SendBufferMemory=2M
+ReceiveBufferMemory=2M
+
+[ndb_mgmd]
+HostName=127.0.0.1		# hostname or IP address (default: localhost)
+
+[ndbd]
+HostName=127.0.0.1		# hostname or IP address
+
+[api]
+
+
+Detailed description of execution flow:
+---------------------------------------
+PS/PS_ISE\$SCRIPTDIR: .\sysb.ps1
+  Clear console screen.
+  Is there autobench.conf provided?  =NO => Terminate.
+  Call Parse_Autobench_Conf, check tarballs exist.
+  Is $TARBALLDIR empty?  =YES => Terminate.
+  Print info on #CPU's, $TARBALLDIR
+  If autobench::CMAKEGenerator not provided, call Get_CMAKE_Generator
+  Print CMAKEGenerator
+  Determine if processing tar.gz archives is possible and how.
+  
+  ENTER preparation stage.
+  Process the archives ('*.zip','*.tar.gz') in $TARBALLDIR.
+  Check names of files against autobench::SYSBENCHTARBALL, MYSQLTARBALL and CLUSTERTARBALL.
+  IF both Server and Cluster tarballs are present, ask user to choose one or Quit.
+  Assign $SCRIPT:MySQLServer, $SCRIPT:MySQLCluster, SCRIPT:Sysbench global variables.
+  IF directory to extract archive to already exist and is empty, delete it.
+  ELSE look for binaries in existing extraction directory.
+	IF binaries exist, skip extraction.
+	ELSE delete the directory and extract tarball.
+  Sanity checkpoint:
+  IF !Server/Cluster and !Benchmark variables assigned, Terminate.
+  IF MySQLCluster AND Nodes <= 0, Terminate.
+  Call CleanUp_TarballDir (remove old results/directories) generated by previous runs except for the archive of the run).  
+  Load MySQL c/NET driver.
+  END preparation stage.
+  
+  ENTER Compilation stage.
+  Call Prepare_ForBuild, check IF and WHAT has to be built.
+    Check IF mysqld.exe exists and if it does, skip compilation.
+	Check IF bison.exe exists and CMAKEGenerator is assigned. IF not, Terminate.
+	Create mybuild directory inside the source tree.
+  Call GenerateAndCompile_mysql (we have Cluster/Server source tree).
+    Execute CMAKE -G asynchronously to provide progress feedback. IF there are errors, Terminate.
+	Execute CMAKE --build asynchronously to provide progress feedback. IF there are errors, Terminate.
+	Move zipball generated by the build from $TARBALLDIR/$SCRIPT:MySQLServer/mybuild to $TARBALLDIR/.
+	  IF zipball is not found, Terminate.
+	Remove Source directory.
+GOTCHA: IF something goes wrong with configuring the build, you will probably need to repeat the line used by script in
+cmd console window to see the exact error message or consult generatelog.txt/buildlog.txt files in $TARBALLDIR.
+GOTCHA: $SCRIPT:MySQLServer/$SCRIPT:MySQLCluster point to directory in $TARBALLDIR containing Server/Cluster code.
+IF that directory actually contains sources, once sources are compiled, $SCRIPT:MySQLServer/$SCRIPT:MySQLCluster
+global variables will have to *change* to point to zipballs/directories with *binaries*. Thus it is advisable
+NOT to set autobench::MYSQLTARBALL and CLUSTERTARBALL if you are compiling sources.
+    Extracting from built zipball.
+	Rename Sources.zip to Sources.zi_ to avoid mixup between source archive and binaries archive we will use for
+	benchmark (see above).
+  Call Check_SBBuild.
+    IF sysbench.exe and libmysql.dll are found, no build necessary.
+	ELSE call Build_SB
+	  Locate INCLUDE and LIB directories. Set global variables for build.
+	  IF Sysbench build fails, Terminate.
+  END Compilation stage
+  
+  ENTER Deployment stage
+  Call Determine_DataDir for Server/Cluster.
+  IF EXISTS my_default.ini REMOVE the file.
+  IF Cluster THEN call Get_MGMNodePort
+    IF management node port is not assigned, Terminate.
+	Call Create_FreshNDBDATA.
+	Check autobench::OPTIONDATAD ($SCRIPT:OPTIONDATAD):
+	  IF COPY_CLEAN do nothing.
+	  IF ALWAYS_CLEAN 
+	    IF basedir\data exist
+		  IF 5.7/7.5 - remove datadir.
+		  IF 5.6/7.4
+		    IF copy exists (data_tg) - remove datadir, move data_tg to data.
+			ELSE run with provided datadir as it can not be replaced. Write warning about this.
+    Call Set_DATADIR 'CLUSTER'.
+	Call GetSet_Cluster_ini to modify existing ini file/create minimal one for given configuration.
+	  Return $LNodePort (local data node port)
+    Do sanity check. IF fails, Terminate.
+	Call exec_local_job to start ndb_mgmd as a background job.
+	IF management node process is started
+	  Call exec_local_job to start ndbmtd as a background job.
+	  Check data nodes started.
+	  IF data nodes did not start, bail out.
+	ELSE bail out, management node did not start.
+	Call exec_local_job_ex with --new and autobench::CLUSTERCL to start API node (mysqld) as a background job.
+	IF error, bail out, mysqld not started.
+	
+  IF Server 
+    Determine free port in range 3000+
+	Check autobench::OPTIONDATAD ($SCRIPT:OPTIONDATAD):
+	  IF COPY_CLEAN do nothing.
+	  IF ALWAYS_CLEAN 
+	    IF basedir\data exist
+		  IF 5.7/7.5 - remove datadir.
+		  IF 5.6/7.4
+		    IF copy exists (data_tg) - remove datadir, move data_tg to data.
+			ELSE run with provided datadir as it can not be replaced. Write warning about this.
+    Call Set_DATADIR 'SERVER'.
+    Do sanity check. IF fails, Terminate.
+	Call exec_local_job_ex with --new and autobench::SERVERCL to start mysqld as a background job.
+	IF error, bail out, mysqld not started.
+  END Deployment stage
+  
+  Run benchmark
+  Call SetUp_and_Run_SysbenchTest.
+    ENTER SB PREPARE
+	IF provided $TARBALLDIR\sysbench.conf
+	  Call Parse_Sysbench_Conf to create hash map of options.
+	  IF map contains --mysql-table-engine=innodb THEN $IsInnoDB = $true
+	  Call SBRecreate_TestDB
+	    DROP DATABASE test;
+		CREATE DATABASE test;
+	  Call Do_SBLoad IF autobench::SBPREPEDDATA ($SCRIPT:SBPREPEDDATA)
+	    IF mysql.exe
+		  IF autobench::SBPREPEDDATA ($SCRIPT:SBPREPEDDATA)
+		    Load provided dump.
+      IF Do_SBLoad fails or !autobench::SBPREPEDDATA ($SCRIPT:SBPREPEDDATA)
+	    Call Do_SBPrepare (Invoke sysbench with params and "prepare" switch).
+	  IF autobench::SBDUMPPREPED ($SCRIPT:SBDUMPPREPED)
+	    Call Do_SBPrepDump to (mysql)dump prepared DB to autobench::SBPREPEDDATA ($SCRIPT:SBPREPEDDATA) file.
+      Call SB_WarmUpBP to warm the buffer pool.
+	  IF !RUN_AS_HARNESS
+	    Invoke sysbench with params and "run" switch
+	    IF autobench::LOG_FILE ($logfile)
+	      Append sysbench output to log file.
+          Parse_SysbenchNew and display samples and TPS average.
+	    ELSE dump sysbench output to console.
+	    IF $IsInnoDB and autobench::SHOW_INNODB_STATUS ($SCRIPT:SHOW_INNODB_STATUS)
+	      Display SHOW ENGINE INNODB STATUS and the size of database in console.
+	    Sleep according to settings.
+	    Re-run according to settings.
+	    IF autobench::LOG_FILE ($logfile)
+	      Collect complete sysbench output (Out.txt) and append to LOG_FILE.
+		  Rename LOG_File to LOG_FILE-timestamp
+		  Call Parse_SysbenchNew to parse out the results and form CSV file (results.csv).
+	  ELSE (harness)
+	    Start sysbench in background with options and leave it running for --max-time.
+    ELSE - no $TARBALLDIR\SYSBENCH.CONF
+	  SERVER: .\sysbench.exe --max-requests=10000 --max-time=20 --test=oltp
+	  CLUSTER:.\sysbench.exe --max-requests=10000 --max-time=20 --test=oltp --mysql-table-engine=NDB --mysql-engine-trx=yes
+  END Run benchmark
+  
+  Clean up.
+  Stop the services choice: Yes/No
+GOTCHA: When the questions pops up in console, you can defer answering and run some tests/analytic of your own
+while Server/Cluster are still deployed.
+  IF Stop services
+    Call Stop_Mysqld_Job and collect output.
+	IF Cluster
+	  Stop the child jobs, if any, of the $MGMTNode_job, collect dump output on console.
+	  Execute ndb_mgm -e SHUTDOWN to stop the data nodes.
+	  Remove $MGMTNode_job.
+	  Sleep 10 seconds.
+	  Check if more ndbmtd* processes are running and report on screen.
+	  Remove, if exists, $SCRIPT:TarballDir\$SCRIPT:MySQLCluster\bin\my.cnf
+	  Grab $SCRIPT:TarballDir\$SCRIPT:MySQLCluster\ndb_data and move to $SCRIPT:TarballDir\ndb_data-timestamp
+	  Remove $SCRIPT:TarballDir\$SCRIPT:MySQLCluster\data directory.
+	  IF !autobench::OPTIONDATAD=ALWAYS_CLEAN AND $SCRIPT:TarballDir\$SCRIPT:MySQLCluster\data_tg
+	    Move data_tg to data
+	  ELSE remove data_tg
+GOTCHA: Do not use ALWAYS_CLEAN with Server 5.6/Cluster 7.4!	  
+	ELSE Server
+	  Execute $SCRIPT:TarballDir\$SCRIPT:MySQLServer\bin\mysqladmin -P$LSrNodePort -uroot SHUTDOWN 2>$null
+	  Remove, if exists, $SCRIPT:TarballDir\$SCRIPT:MySQLServer\bin\my.cnf
+	  Remove $SCRIPT:TarballDir\$SCRIPT:MySQLServer\data directory.
+	  IF !autobench::OPTIONDATAD=ALWAYS_CLEAN AND $SCRIPT:TarballDir\$SCRIPT:MySQLServer\data_tg
+	    Move data_tg to data
+	  ELSE remove data_tg
+GOTCHA: Do not use ALWAYS_CLEAN with Server 5.6/Cluster 7.4!	  
+  ELSE Processes still running, Terminate.
+  Clean up stray jobs if any:
+    Get-Job | Where-Object { ($_.State -eq 'Completed') -and ($_.Name -match "Job") } | Remove-Job
+  END Clean up.
+  
+  Save the console output to file sessiondump.txt.
+  Rename to sessiondump-timestamp.txt
+  IF autobench::ArchiveRun ($SCRIPT:ArchiveRun)
+    Create archive $SCRIPT:TarballDir\archrun-timestamp.zip
+	Add ndb_data-timestamp to the archive.
+	Add results.csv to the archive.
+	Add autobench::LOG_FILE-timestamp to the archive.
+	Add mysqld-output-timestamp to the archive.
+  Try opening results.csv file.
+  Go back to $SCRIPTDIR.
+  Terminate.
+PS/PS_ISE\$SCRIPTDIR:
+
+
+TIPS&TRICKS:
+------------
+- Do start the script from SCRIPT folder. This is important so that I know where the config files and libraries are
+without requiring command line parameters.
+
+- If you have server with data you use for Sysbench testing, dump that database and set SBPREPEDDATA to point to your
+file. Also, set SBDUMPPREPED=NO to avoid dumping the data all over again.
+
+- If CMAKE errors out either during generation stage or during compilation and the script does not provide enough info,
+please check on $TARBALLDIR\buildlog.txt and/or $TARBALLDIR\generatelog.txt. If files are not present, please repeat the
+commands, as they appear in Powershell console, in cmd console and observe the output. CMAKE generates huge amount of
+text so I'm not parsing/displaying everything.
+
+- It is OK to have errors at the end of the run relating to EventLogging. Only the Administrator starting the mysqld and
+the script on elevated privileges prompt can write to Registry key in question.
+
+- Mind that our version of Sysbench requires new features in MySQL server thus --new is mandatory parameter and often
+added automatically by the script.
+
+- It is not enough to have c/NET installed on the box. You need MySql.Data.dll in SCRIPT directory (provided one is 
+v.6.9.6). This is because LoadWithPartialName is deprecated in newer versions of PowerShell which makes loading the
+already installed driver painful...
+
+- It is much better to use 7-zip than ICSharp library for tar.gz processing. So please install 7-zip and add it to PATH.
+
+- There is DBT2 code in script as well as DBT2 variables in autobench.conf file. Feel free to ignore as I have not
+implemented DBT2 functionality yet.
+
+- Be careful with the script! It unpacks, compiles, moves, deletes, starts/stops server instances. Protect your
+configuration and data.
+
+- Be careful with the script as it might overload your test box! Choose test parameters wisely and accordingly.
+

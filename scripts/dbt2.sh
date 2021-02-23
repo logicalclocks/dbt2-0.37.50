@@ -426,7 +426,7 @@ run_one_test()
         COMMAND="$COMMAND --password password"
       fi
     else
-      COMMAND="$COMMAND -p'$MYSQL_PASSWORD'"
+      COMMAND="$COMMAND --password $MYSQL_PASSWORD"
     fi
     COMMAND="$COMMAND $DEBUG_INFO"
     if test "x$VERBOSE_HERE" = "xyes" ; then
@@ -1021,6 +1021,7 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
     COMMAND="bash $BASE_DIR/scripts/mysql_load_sp.sh"
   else
     COMMAND="bash $BASE_DIR/scripts/mysql_load_db.sh"
+    COMMAND="${COMMAND} --ndb-connectstring ${NDB_CONNECTSTRING}"
   fi
   COMMAND="${COMMAND} --user $MYSQL_USER"
   if test "x$MYSQL_PASSWORD" = "x" ; then
@@ -1074,7 +1075,7 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
           execute_command
         fi
       fi
-      EXEC_COMMAND="$EXEC_COMMAND --mysql-path $MYSQL_PATH/bin/mysql"
+      EXEC_COMMAND="$EXEC_COMMAND --mysql-path $MYSQL_PATH/bin"
       if test "x$PROCESS" = "xcreate_tables" ; then
         if test "x$USE_MYISAM_FOR_ITEM" = "xyes" ; then
           EXEC_COMMAND="$EXEC_COMMAND --item-use-myisam"

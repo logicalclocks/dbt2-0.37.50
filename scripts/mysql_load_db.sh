@@ -26,6 +26,7 @@ usage() {
   echo '       --port <database port> (default 3306)'
   echo '       --user <database user> (default root)'
   echo '       --password <database password> (default not specified)'
+  echo '       -ndb-connectstring <NDB connect string> (default not specified)'
   echo ''
   echo 'Partition options:'
   echo '------------------'
@@ -100,7 +101,6 @@ else
   TABLES="customer district history item new_order order_line orders stock warehouse"
 fi
 
-SET_BATCH_SIZE="set ndb_batch_size=2*1024*1024;"
 for TABLE in $TABLES ; do
   COLUMN_NAMES=
   if [ "$TABLE" = "history" ]; then
@@ -113,9 +113,7 @@ for TABLE in $TABLES ; do
     else
       FN="$TABLE"
     fi
-    command_exec "$MYSQL --local-infile $DB_NAME -e \"$SET_BATCH_SIZE LOAD DATA LOCAL INFILE \
-              \\\"$DB_PATH/$FN.data\\\" \
-              INTO TABLE $TABLE $LATIN1 FIELDS TERMINATED BY ',' ${COLUMN_NAMES} \""
+    command_exec "${NDB_IMPORT} ${DB_NAME} ${DB_PATH}/${FN}.data --fields-terminated-by=','"
   fi
 done
 }
@@ -343,6 +341,7 @@ USING_HASH=""
 EXTRA_CUST_INDEX_FIELDS=""
 ONLY_ITEM=""
 USE_MYISAM_FOR_ITEM=""
+NDB_CONNECTSTRING=
 
 while test $# -gt 0
 do
@@ -352,6 +351,9 @@ do
     ;;
   --item-use-myisam )
     USE_MYISAM_FOR_ITEM="1"
+    ;;
+  --ndb-connectstring )
+    shift NDB_CONNECTSTRING=$1
     ;;
   --partition | -partition )
     shift
@@ -505,7 +507,8 @@ else
   MYSQL_ARGS="$MYSQL_ARGS --protocol=tcp"
 fi
 MYSQL_ARGS="$MYSQL_ARGS --port $DB_PORT"
-MYSQL="$MYSQL $MYSQL_ARGS"
+MYSQL="$MYSQL/mysql $MYSQL_ARGS"
+NDB_IMPORT="$MYSQL/ndb_import --ndb-connectstring ${NDB_CONNECTSTRING}"
 
 echo ""
 echo "Loading of DBT2 dataset located in $DB_PATH to database $DB_NAME."

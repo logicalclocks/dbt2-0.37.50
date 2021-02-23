@@ -36,7 +36,7 @@
 #define HISTORY_DATA "history.data"
 #define ITEM_DATA "item.data"
 #define NEW_ORDER_DATA "new_order.data"
-#define ORDER_DATA "order.data"
+#define ORDER_DATA "orders.data"
 #define ORDER_LINE_DATA "order_line.data"
 #define STOCK_DATA "stock.data"
 #define WAREHOUSE_DATA "warehouse.data"
@@ -384,10 +384,15 @@ void gen_history()
 		printf("cannot open %s\n", HISTORY_DATA);
 		return;
 	}
-
 	for (i = first_warehouse; i < last_warehouse; i++) {
+                unsigned long long h_id = i * DISTRICT_CARDINALITY * customers;
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
+				/* h_id */
+                                h_id++;
+				FPRINTF(output, "%lld", h_id);
+				METAPRINTF((output, "%c", delimiter));
+
 				/* h_c_id */
 				FPRINTF(output, "%d", k + 1);
 				METAPRINTF((output, "%c", delimiter));

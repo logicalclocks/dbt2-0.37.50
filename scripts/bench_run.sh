@@ -1080,6 +1080,7 @@ write_dbt2_conf()
   write_conf "DIS_CONFIG_FILE=\"${DEFAULT_DIR}/dis_config_c1.ini\""
   write_conf "MYSQL_VERSION=\"${MYSQL_VERSION}\""
   write_conf "DBT2_LOADERS=\"${DBT2_LOADERS}\""
+  write_conf "DBT2_CREATE_LOAD_FILES=\"${DBT2_CREATE_LOAD_FILES}\""
   write_conf "DBT2_GENERATE_FILES=\"${DBT2_GENERATE_FILES}\""
   write_conf "DBT2_DATA_DIR=\"${DBT2_DATA_DIR}\""
   write_conf "DBT2_WAREHOUSES=\"${DBT2_WAREHOUSES}\""
@@ -3021,6 +3022,7 @@ DBT2_TIME="90"
 DBT2_SCI=
 DBT2_SPREAD=
 DBT2_LOADERS="8"
+DBT2_CREATE_LOAD_FILES="yes"
 DBT2_GENERATE_FILES="no"
 DBT2_USE_ALTERED_MODE="no"
 

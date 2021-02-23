@@ -26,7 +26,7 @@ usage() {
   echo '       --port <database port> (default 3306)'
   echo '       --user <database user> (default root)'
   echo '       --password <database password> (default not specified)'
-  echo '       -ndb-connectstring <NDB connect string> (default not specified)'
+  echo '       --ndb-connectstring <NDB connect string> (default not specified)'
   echo ''
   echo 'Partition options:'
   echo '------------------'
@@ -108,12 +108,8 @@ for TABLE in $TABLES ; do
   fi
   if [ "$TABLE" != "item" -o "$DB_PARALLEL" != "1" -o "$LOAD_TABLES" == "0" ]; then
     echo "Loading table $TABLE"
-    if [ "$TABLE" == "orders" ]; then
-      FN="order"
-    else
-      FN="$TABLE"
-    fi
-    command_exec "${NDB_IMPORT} ${DB_NAME} ${DB_PATH}/${FN}.data --fields-terminated-by=','"
+    FN="$TABLE"
+    command_exec "${NDB_IMPORT} ${DB_NAME} ${DB_PATH}/${FN}.data --fields-terminated-by=',' --state-dir=${DB_PATH}"
   fi
 done
 }
@@ -353,7 +349,8 @@ do
     USE_MYISAM_FOR_ITEM="1"
     ;;
   --ndb-connectstring )
-    shift NDB_CONNECTSTRING=$1
+    shift
+    NDB_CONNECTSTRING=$1
     ;;
   --partition | -partition )
     shift
@@ -490,6 +487,8 @@ fi
 if [ "$PARTITION_NO" != "" ]; then
   PARTITION_NO="PARTITIONS $PARTITION_NO"
 fi
+NDB_IMPORT="${MYSQL}/ndb_import"
+MYSQL="${MYSQL}/mysql"
 if [ ! -f "$MYSQL" ]; then
   usage "MySQL client binary '$MYSQL' not exists.
        Please specify correct one using -c #"
@@ -507,8 +506,8 @@ else
   MYSQL_ARGS="$MYSQL_ARGS --protocol=tcp"
 fi
 MYSQL_ARGS="$MYSQL_ARGS --port $DB_PORT"
-MYSQL="$MYSQL/mysql $MYSQL_ARGS"
-NDB_IMPORT="$MYSQL/ndb_import --ndb-connectstring ${NDB_CONNECTSTRING}"
+MYSQL="$MYSQL $MYSQL_ARGS"
+NDB_IMPORT="${NDB_IMPORT} --ndb-connectstring ${NDB_CONNECTSTRING}"
 
 echo ""
 echo "Loading of DBT2 dataset located in $DB_PATH to database $DB_NAME."

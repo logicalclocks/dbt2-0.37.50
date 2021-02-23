@@ -162,7 +162,7 @@ for ((i=FIRST_WAREHOUSE; i<LAST_WAREHOUSE; i++))
 do
   MSG="Create warehouse ${i}"
   output_msg
-  /bin/mkdir -p ${DATA_DIR}/dbt2-w${i}
+  mkdir -p ${DATA_DIR}/dbt2-w${i}
   if test "x$USE_IRONDB" = "xyes" ; then
     ${MYSQL_PATH}/bin/dbt2/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} --mysql
   else

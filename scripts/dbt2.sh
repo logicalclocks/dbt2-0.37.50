@@ -161,6 +161,23 @@ execute_command()
   fi
 }
 
+eval_command()
+{
+  if test "x$VERBOSE_HERE" = "xyes" ; then
+    MSG="Executing $EXEC_COMMAND"
+    output_msg
+    MSG="++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    output_msg
+  fi
+  eval $EXEC_COMMAND
+  if test "x$VERBOSE_HERE" = "xyes" ; then
+    MSG="------------------------------------------------------"
+    output_msg
+    MSG=""
+    output_msg
+  fi
+}
+
 verify_line_run()
 {
   IGNORE_LINE="no"
@@ -251,11 +268,11 @@ create_dbt2_files()
 {
   if test "x$DBT2_GENERATE_FILES" = "xyes" ; then
     LOC_EXEC_COMMAND="$EXEC_COMMAND"
-    EXEC_COMMAND="/bin/mkdir -p ${DBT2_DATA_DIR}/dbt2-w${i}"
+    EXEC_COMMAND="mkdir -p ${DBT2_DATA_DIR}/dbt2-w${i}"
     execute_command
     if test "x${LINE_HOST_NAME}" != "xlocalhost" && \
        test "x${LINE_HOST_NAME}" != "x127.0.0.1" ; then
-      EXEC_COMMAND="$SSH $LINE_HOST_NAME /bin/mkdir -p ${DBT2_DATA_DIR}/dbt2-w${i}"
+      EXEC_COMMAND="$SSH $LINE_HOST_NAME mkdir -p ${DBT2_DATA_DIR}/dbt2-w${i}"
       execute_command
     fi
     if test "x$USE_IRONDB" = "xyes" ; then
@@ -279,11 +296,11 @@ drop_dbt2_files()
 {
   if test "x$DBT2_GENERATE_FILES" = "xyes" ; then
     LOC_EXEC_COMMAND="$EXEC_COMMAND"
-    EXEC_COMMAND="/bin/rm -rf ${DBT2_DATA_DIR}/dbt2-w${i}"
+    EXEC_COMMAND="rm -rf ${DBT2_DATA_DIR}/dbt2-w${i}"
     execute_command
     if test "x${LINE_HOST_NAME}" != "xlocalhost" && \
        test "x${LINE_HOST_NAME}" != "x127.0.0.1" ; then
-      EXEC_COMMAND="$SSH $LINE_HOST_NAME /bin/rm -rf ${DBT2_DATA_DIR}/dbt2-w${i}"
+      EXEC_COMMAND="$SSH $LINE_HOST_NAME rm -rf ${DBT2_DATA_DIR}/dbt2-w${i}"
       execute_command
     fi
     EXEC_COMMAND="$LOC_EXEC_COMMAND"
@@ -638,6 +655,14 @@ run_test_activity()
   if test "x${DEFAULT_DIR}" != "x" ; then
     cat ${BENCHMARK_SUMMARY_LOGFILE} > ${DEFAULT_DIR}/final_result.txt
   fi
+}
+
+copy_large_file()
+{
+  EXEC_COMMAND="touch ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}/${LARGE_FILE}"
+  execute_command
+  EXEC_COMMAND="cat ${DBT2_DATA_DIR}/dbt2-w${i}/${LARGE_FILE} >> ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}/${LARGE_FILE}"
+  eval_command
 }
 
 DEFAULT_FILE_DBT2=""
@@ -1119,14 +1144,44 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
           fi
           EXEC_COMMAND="$EXEC_COMMAND --parallel-load"
           SAVE_COMMAND="$EXEC_COMMAND --engine $STORAGE_ENGINE"
-          for ((i = $FIRST_WAREHOUSE; i < $FIRST_WAREHOUSE + $NUM_WAREHOUSES; i += 1))
-          do
-            create_dbt2_files
-            EXEC_COMMAND="$SAVE_COMMAND"
-            EXEC_COMMAND="$EXEC_COMMAND --path $DBT2_DATA_DIR/dbt2-w$i"
+          if test "x$DBT2_CREATE_LOAD_FILES" = "xyes" ; then
+            LARGE_FILE_DIR="large_files_${FIRST_WAREHOUSE}"
+            EXEC_COMMAND="mkdir -p ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}"
             execute_command
-            drop_dbt2_files
-          done
+            for ((i = $FIRST_WAREHOUSE; i < $FIRST_WAREHOUSE + $NUM_WAREHOUSES; i += 1))
+            do
+              LARGE_FILE="warehouse.data"
+              copy_large_file
+              LARGE_FILE="district.data"
+              copy_large_file
+              LARGE_FILE="history.data"
+              copy_large_file
+              LARGE_FILE="customer.data"
+              copy_large_file
+              LARGE_FILE="orders.data"
+              copy_large_file
+              LARGE_FILE="order_line.data"
+              copy_large_file
+              LARGE_FILE="new_order.data"
+              copy_large_file
+              LARGE_FILE="stock.data"
+              copy_large_file
+            done
+            EXEC_COMMAND="$SAVE_COMMAND"
+            EXEC_COMMAND="$EXEC_COMMAND --path ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}"
+            execute_command
+            EXEC_COMMAND="rm -rf ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}"
+            execute_command
+          else
+            for ((i = $FIRST_WAREHOUSE; i < $FIRST_WAREHOUSE + $NUM_WAREHOUSES; i += 1))
+            do
+              create_dbt2_files
+              EXEC_COMMAND="$SAVE_COMMAND"
+              EXEC_COMMAND="$EXEC_COMMAND --path $DBT2_DATA_DIR/dbt2-w$i"
+              execute_command
+              drop_dbt2_files
+            done
+          fi
         fi
       fi
     fi

@@ -163,7 +163,7 @@ do
   MSG="Create warehouse ${i}"
   output_msg
   mkdir -p ${DATA_DIR}/dbt2-w${i}
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     ${MYSQL_PATH}/bin/dbt2/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} --mysql
   else
     ${BASE_DIR}/src/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} --mysql

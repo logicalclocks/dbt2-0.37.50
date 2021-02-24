@@ -97,7 +97,6 @@ usage() {
   echo ''
   echo 'Runtime options:'
   echo '----------------'
-  echo '       --irondb-path          <Path to iRoNDB installation>'
   echo '       --thread-start-delay   <delay of starting of new thread in milliseconds'
   echo '                              (default 100)>'
   echo '       --stack-size           <stack size. (default 256k)>'
@@ -253,7 +252,7 @@ if test "x$DEFAULT_DIR" != "x" ; then
 fi
 
 DBT2_PATH=
-USE_IRONDB="no"
+USE_RONDB="no"
 while test $# -gt 0
 do
   case $1 in
@@ -323,8 +322,8 @@ do
       shift
       DBT2_PATH=$1
       ;;
-    --use-irondb )
-      USE_IRONDB="yes"
+    --use-rondb )
+      USE_RONDB="yes"
       ;;
     --lib-client-path | --lib_client_path | -lib-client-path | -lib_client_path )
       shift
@@ -580,7 +579,7 @@ if [ "x$PRE_RUN" = "xyes" ] ; then
   echo ''
   echo "Stage 1. Starting up client..."
 
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     CLIENT_COMMAND="$DBT2_PATH/../bin/dbt2/client $CLIENT_COMMAND_ARGS"
   else
     CLIENT_COMMAND="$DBT2_PATH/src/client $CLIENT_COMMAND_ARGS"
@@ -634,7 +633,7 @@ if [ "x$REAL_RUN" = "xyes" ] ; then
   else
     DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -w $WAREHOUSES"
   fi
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     DRIVER_COMMAND="$DBT2_PATH/../bin/dbt2/driver $DRIVER_COMMAND_ARGS $DRIVER_ARGS"
   else
     DRIVER_COMMAND="$DBT2_PATH/src/driver $DRIVER_COMMAND_ARGS $DRIVER_ARGS"

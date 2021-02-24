@@ -275,7 +275,7 @@ create_dbt2_files()
       EXEC_COMMAND="$SSH $LINE_HOST_NAME mkdir -p ${DBT2_DATA_DIR}/dbt2-w${i}"
       execute_command
     fi
-    if test "x$USE_IRONDB" = "xyes" ; then
+    if test "x$USE_RONDB" = "xyes" ; then
       EXEC_COMMAND="${MYSQL_PATH}/bin/dbt2/datagen"
     else
       EXEC_COMMAND="${BASE_DIR}/src/datagen"
@@ -433,8 +433,8 @@ run_one_test()
     COMMAND="$COMMAND bash $BASE_DIR/scripts/run_mysql.sh"
     COMMAND="$COMMAND --default-directory $DEFAULT_DIR"
     COMMAND="$COMMAND --dbt2-path $BASE_DIR"
-    if test "x$USE_IRONDB" = "xyes" ; then
-      COMMAND="$COMMAND --use-irondb"
+    if test "x$USE_RONDB" = "xyes" ; then
+      COMMAND="$COMMAND --use-rondb"
     fi
     COMMAND="$COMMAND --log-file $LOG_FILE"
     COMMAND="$COMMAND --user $MYSQL_USER"
@@ -461,7 +461,7 @@ run_one_test()
     COMMAND="$COMMAND --terminals $LINE_TERMINALS"
     COMMAND="$COMMAND --intermediate_timer_resolution $DBT2_INTERMEDIATE_TIMER_RESOLUTION"
     COMMAND="$COMMAND --lib-client-path $MYSQL_PATH/lib"
-    if test "$USE_IRONDB" != "xyes" ; then
+    if test "$USE_RONDB" != "xyes" ; then
       COMMAND="$COMMAND --lib-client-path $MYSQL_PATH/lib/mysql"
     fi
     COMMAND="$COMMAND --output-base $OUTPUT_BASE"
@@ -1030,7 +1030,7 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
     output_msg
   fi
   DBT2_LOG_FILE="$DBT2_LOG_DIR/load_data"
-  if test "x$USE_IRONDB"  != "xyes" ; then
+  if test "x$USE_RONDB"  != "xyes" ; then
     if test "x$MYSQL_VERSION" = "x" ; then
       MSG="MYSQL_VERSION is mandatory to set"
       output_msg
@@ -1056,7 +1056,7 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
   else
     COMMAND="$COMMAND -p'$MYSQL_PASSWORD'"
   fi
-  if test "x$USE_IRONDB"  != "xyes" ; then
+  if test "x$USE_RONDB"  != "xyes" ; then
     if test "x$LD_LIBRARY_PATH" = "x" ; then
       LD_LIBRARY_PATH="$MYSQL_PATH/lib/mysql"
     else

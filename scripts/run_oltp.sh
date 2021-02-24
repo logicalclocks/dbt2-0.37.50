@@ -173,7 +173,7 @@ edit_pfs_synch()
     if test "x$MYSQL_SERVER_BASE" = "x5.6" || \
        test "x$MYSQL_SERVER_BASE" = "x5.7" || \
        test "x$MYSQL_SERVER_BASE" = "x8.0" ; then
-      if test "x$USE_IRONDB" != "xyes" ; then
+      if test "x$USE_RONDB" != "xyes" ; then
         PFS_SYNCH_CMD="$BASE_COMMAND < ${DBT2_PATH}/scripts/PFS_synch.sql"
       else
         PFS_SYNCH_CMD="$BASE_COMMAND < ${MYSQL_PATH}/dbt2_install/scripts/PFS_synch.sql"

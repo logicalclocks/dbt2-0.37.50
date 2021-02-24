@@ -881,7 +881,7 @@ write_iclaustron_conf()
   CONF_FILE="${DEFAULT_DIR}/iclaustron.conf"
   ${ECHO} "#iClaustron configuration file used to drive start/stop of MySQL programs" \
           > ${CONF_FILE}
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     write_conf "MYSQL_SERVER_PATH=\"${MYSQL_BIN_INSTALL_DIR}\""
     write_conf "MYSQL_NDB_PATH=\"${MYSQL_BIN_INSTALL_DIR}\""
   else
@@ -920,7 +920,7 @@ write_iclaustron_conf()
   if test "x$WINDOWS_REMOTE" = "xyes" ; then
     write_conf "WINDOWS_INSTALL=\"yes\""
   fi
-  write_conf "USE_IRONDB=\"${USE_IRONDB}\""
+  write_conf "USE_RONDB=\"${USE_RONDB}\""
   write_conf "MYSQL_USER=\"${MYSQL_USER}\""
   write_conf "MYSQL_PASSWORD='${MYSQL_PASSWORD}'"
   write_conf "NDB_INDEX_STAT_ENABLE=\"${NDB_INDEX_STAT_ENABLE}\""
@@ -1062,7 +1062,7 @@ write_dbt2_conf()
   export DBT2_DEFAULT_FILE="${DEFAULT_DIR}/dbt2.conf"
   CONF_FILE="${DEFAULT_DIR}/dbt2.conf"
   ${ECHO} "#DBT2 configuration used to drive DBT2 benchmarks" > ${CONF_FILE}
-  write_conf "USE_IRONDB=\"${USE_IRONDB}\""
+  write_conf "USE_RONDB=\"${USE_RONDB}\""
   write_conf "MYSQL_SERVER_BASE=\"${MYSQL_SERVER_BASE}\""
   write_conf "DBT3_USE_BOTH_NDB_AND_INNODB=\"${DBT3_USE_BOTH_NDB_AND_INNODB}\""
   write_conf "DBT3_DATA_PATH=\"${DBT3_DATA_PATH}\""
@@ -1071,7 +1071,7 @@ write_dbt2_conf()
   write_conf "DBT3_USE_PARTITION_KEY=\"${DBT3_USE_PARTITION_KEY}\""
   write_conf "DBT3_PARTITION_BALANCE=\"${DBT3_PARTITION_BALANCE}\""
   write_conf "DBT3_READ_BACKUP=\"${DBT3_READ_BACKUP}\""
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     write_conf "DBT2_PATH=\"${MYSQL_BIN_INSTALL_DIR}/dbt2_install\""
   else
     write_conf "DBT2_PATH=\"${SRC_INSTALL_DIR}/${DBT2_VERSION}\""
@@ -1125,7 +1125,7 @@ write_dbt2_conf()
   elif test "x${ENGINE}" = "myisam" ; then
     write_conf "STORAGE_ENGINE=\"MYISAM\""
   fi
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     write_conf "MYSQL_PATH=\"${MYSQL_BIN_INSTALL_DIR}\""
   else
     write_conf "MYSQL_PATH=\"${MYSQL_BIN_INSTALL_DIR}/${MYSQL_CLIENT_VERSION}\""
@@ -1205,9 +1205,9 @@ write_sysbench_conf()
   output_msg
   CONF_FILE="${DEFAULT_DIR}/sysbench.conf"
   ${ECHO} "#Sysbench configuration used to drive sysbench benchmarks" > ${CONF_FILE}
-  write_conf "USE_IRONDB=\"${USE_IRONDB}\""
+  write_conf "USE_RONDB=\"${USE_RONDB}\""
   write_conf "MYSQL_SERVER_BASE=\"${MYSQL_SERVER_BASE}\""
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     write_conf "SYSBENCH=\"${MYSQL_BIN_INSTALL_DIR}/bin/sysbench/sysbench\""
     write_conf "MYSQL_PATH=\"${MYSQL_BIN_INSTALL_DIR}\""
     write_conf "DBT2_PATH=\"${MYSQL_BIN_INSTALL_DIR}/dbt2_install\""
@@ -2432,7 +2432,7 @@ create_dbt2_test_files()
 {
   if test "x${BENCHMARK_TO_RUN}" = "xdbt2" ; then
     if test "x${PERFORM_GENERATE_DBT2_DATA}" = "xyes" ; then
-      if test "x$USE_IRONDB" = "xyes" ; then
+      if test "x$USE_RONDB" = "xyes" ; then
         COMMAND="${MYSQL_BIN_INSTALL_DIR}/dbt2_install/scripts/create_dbt2_files.sh"
       else
         COMMAND="${SRC_INSTALL_DIR}/${DBT2_VERSION}/scripts/create_dbt2_files.sh"
@@ -2537,7 +2537,7 @@ set_first_server_port()
 
 set_run_oltp_script()
 {
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     RUN_OLTP_SCRIPT="$MYSQL_BIN_INSTALL_DIR/dbt2_install/scripts/run_oltp.sh"
   else
     RUN_OLTP_SCRIPT="${SRC_INSTALL_DIR}/${DBT2_VERSION}/scripts/run_oltp.sh"
@@ -2787,7 +2787,7 @@ run_flexAsynch()
 
 handle_cleanup()
 {
-  if test "x$USE_IRONDB" = "xyes" ; then
+  if test "x$USE_RONDB" = "xyes" ; then
     if test "x${PERFORM_CLEANUP}" = "xyes" ; then
       if test "x${BENCHMARK_TO_RUN}" = "xdbt2" ; then
         clean_up_output
@@ -3181,7 +3181,7 @@ MSO_FLAG=
 COMPILER_FLAG=
 CLIENT_MYSQL_VERSION=
 MYSQL_CLIENT_VERSION=
-MYSQL_VERSION="irondb"
+MYSQL_VERSION="rondb"
 MYSQL_SERVER_VERSION=
 MYSQL_NDB_VERSION=
 FEEDBACK_FLAG=
@@ -3209,7 +3209,7 @@ SKIP_INITIAL=
 SKIP_RUN=
 SYSBENCH_INSTANCES="1"
 PERFORM_INIT="no"
-USE_IRONDB="yes"
+USE_RONDB="yes"
 MYSQL_USER=
 MYSQL_PASSWORD=
 
@@ -3337,7 +3337,7 @@ ${ECHO} "Starting automated benchmark suite" > ${LOG_FILE}
 read_autobench_conf
 check_client_mysql_version
 check_parameters
-if test "x$USE_IRONDB" != "xyes" ; then
+if test "x$USE_RONDB" != "xyes" ; then
   set_compiler_flags
   if test "x$MYSQL_USER" != "x" ; then
     MYSQL_USER="root"
@@ -3359,7 +3359,7 @@ set_up_ndb_index_stat
 generate_configs
 check_kill_nodes
 clean_up_before_start
-if test "x$USE_IRONDB" != "xyes" ; then
+if test "x$USE_RONDB" != "xyes" ; then
   init_tarball_variables
   create_dirs
   create_data_dir_in_all_nodes

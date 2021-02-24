@@ -595,7 +595,7 @@ set_mysql_install_db_args()
       MYSQL_INIT_ARGS="$MYSQL_SERVER_PATH/bin/mysqld"
       MYSQL_INIT_ARGS="$MYSQL_INIT_ARGS --no-defaults --initialize-insecure"
       if test "x$MYSQL_SERVER_BASE" = "x8.0" ; then
-        if test "x$USE_IRONDB" != "xyes" ; then
+        if test "x$USE_RONDB" != "xyes" ; then
           MYSQL_INIT_ARGS="$MYSQL_INIT_ARGS --init-file=$MYSQL_SERVER_PATH/bin/init_file.sql"
         else
           MYSQL_INIT_ARGS="$MYSQL_INIT_ARGS --init-file=$MYSQL_SERVER_PATH/dbt2_install/scripts/init_file.sql"

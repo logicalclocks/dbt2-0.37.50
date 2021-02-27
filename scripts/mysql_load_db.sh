@@ -94,24 +94,26 @@ command_exec()
 
 load_tables()
 {
-
+cd ${DB_PATH}
+TABLES=
 if [ "$LOAD_TABLES" == "0" ]; then
-  TABLES="item"
+  echo "Loading table item"
+  TABLES="${DB_PATH}/item.data"
 else
-  TABLES="customer district history item new_order order_line orders stock warehouse"
+  echo "Loading tables customer, district, warehouse, stock, order_line, orders, new_order and history"
+  TABLES="${DB_PATH}/warehouse.data"
+  TABLES="${TABLES} ${DB_PATH}/stock.data"
+  TABLES="${TABLES} ${DB_PATH}/order_line.data"
+  TABLES="${TABLES} ${DB_PATH}/orders.data"
+  TABLES="${TABLES} ${DB_PATH}/customer.data"
+  TABLES="${TABLES} ${DB_PATH}/history.data"
+  TABLES="${TABLES} ${DB_PATH}/new_order.data"
+  TABLES="${TABLES} ${DB_PATH}/district.data"
 fi
-
-for TABLE in $TABLES ; do
-  COLUMN_NAMES=
-  if [ "$TABLE" = "history" ]; then
-    COLUMN_NAMES="(h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data)"
-  fi
-  if [ "$TABLE" != "item" -o "$DB_PARALLEL" != "1" -o "$LOAD_TABLES" == "0" ]; then
-    echo "Loading table $TABLE"
-    FN="$TABLE"
-    command_exec "${NDB_IMPORT} ${DB_NAME} ${DB_PATH}/${FN}.data --fields-terminated-by=',' --state-dir=${DB_PATH}"
-  fi
-done
+COMMAND_OPTIONS="--fields-terminated-by=','"
+COMMAND_OPTIONS="${COMMAND_OPTIONS} --state-dir=${DB_PATH}"
+COMMAND_OPTIONS="${COMMAND_OPTIONS} --ndb-connectstring ${NDB_CONNECTSTRING}"
+command_exec "${NDB_IMPORT} ${DB_NAME} ${TABLES} ${COMMAND_OPTIONS}"
 }
 
 create_tables()
@@ -507,7 +509,6 @@ else
 fi
 MYSQL_ARGS="$MYSQL_ARGS --port $DB_PORT"
 MYSQL="$MYSQL $MYSQL_ARGS"
-NDB_IMPORT="${NDB_IMPORT} --ndb-connectstring ${NDB_CONNECTSTRING}"
 
 echo ""
 echo "Loading of DBT2 dataset located in $DB_PATH to database $DB_NAME."

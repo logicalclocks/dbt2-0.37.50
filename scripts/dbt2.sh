@@ -1146,6 +1146,8 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
           SAVE_COMMAND="$EXEC_COMMAND --engine $STORAGE_ENGINE"
           if test "x$DBT2_CREATE_LOAD_FILES" = "xyes" ; then
             LARGE_FILE_DIR="large_files_${FIRST_WAREHOUSE}"
+            EXEC_COMMAND="rm -rf ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}"
+            execute_command
             EXEC_COMMAND="mkdir -p ${DBT2_DATA_DIR}/${LARGE_FILE_DIR}"
             execute_command
             for ((i = $FIRST_WAREHOUSE; i < $FIRST_WAREHOUSE + $NUM_WAREHOUSES; i += 1))

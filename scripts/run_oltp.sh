@@ -382,7 +382,11 @@ run_oltp_complex()
     SYSBENCH_COMMON="$SYSBENCH_COMMON --mysql-password=password"
   else
     if test "x$MYSQL_PASSWORD" != "x" ; then
-      SYSBENCH_COMMON="$SYSBENCH_COMMON --mysql-password='$MYSQL_PASSWORD'"
+      if test "x$BENCHMARK_SERVER" != "x" ; then
+        SYSBENCH_COMMON="$SYSBENCH_COMMON --mysql-password='\''$MYSQL_PASSWORD'\''"
+      else
+        SYSBENCH_COMMON="$SYSBENCH_COMMON --mysql-password='$MYSQL_PASSWORD'"
+      fi
     fi
   fi
   SYSBENCH_COMMON="$SYSBENCH_COMMON --mysql-db=${SYSBENCH_DB}"

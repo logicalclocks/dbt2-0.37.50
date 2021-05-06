@@ -319,30 +319,20 @@ build_mysql()
   else
     DEBUG_FLAG=
   fi
-  if test "x$USE_DBT2_BUILD" = "xyes" ||
-     ! test -f BUILD/build_mccge.sh || \
-     ! test -f BUILD/check-cpu ; then
-    exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/build_mccge.sh BUILD/.
-    exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/check-cpu BUILD/.
-  fi
-  if test "x$MYSQL_BASE" = "x8.0" ; then
-    exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/cmake_configure.sh BUILD/.
-    exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/configure.pl cmake/.
-  fi
-  exec_command BUILD/build_mccge.sh --prefix=${MYSQL_INSTALL_DIR} \
-                                  ${WITH_DEBUG} \
-                                  ${COMPILER_PARALLELISM} \
-                                  ${DEBUG_FLAG} \
-                                  ${PACKAGE} \
-                                  ${FAST_FLAG} \
-                                  ${COMPILER_FLAG} \
-                                  ${LINK_TIME_OPTIMIZER_FLAG} \
-                                  ${MSO_FLAG} \
-                                  ${COMPILE_SIZE_FLAG} \
-                                  ${WITH_PERFSCHEMA_FLAG} \
-                                  ${FEEDBACK_FLAG} \
-                                  ${WITH_NDB_TEST_FLAG}
+  BUILD_COMMAND="cmake"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_DEBUG=0"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_SSL=off"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_SASL=off"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_NDBCLUSTER=1"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_ROUTER=0"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_MEB=0"
+  BUILD_COMMAND="$BUILD_COMMAND -DWITH_BOOST=$BOOST_ROOT"
+  BUILD_COMMAND="$BUILD_COMMAND -DBUILD_CONFIG=mysql_release"
+  BUILD_COMMAND="$BUILD_COMMAND -DCPACK_MONOLITHIC_INSTALL=true"
+  BUILD_COMMAND="$BUILD_COMMAND -DCMAKE_INSTALL_PREFIX=$MYSQL_INSTALL_DIR"
   exec_command cd BUILD
+  exec_command $BUILD_COMMAND ..
+  exec_command ${MAKE} -j ${COMPILER_PARALLELISM}
   exec_command ${MAKE} install
   exec_command cd ..
   exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/init_file.sql $MYSQL_INSTALL_DIR/bin/.
@@ -427,8 +417,6 @@ build_local()
       COMMAND="${COMMAND} --prefix=${SYSBENCH_INSTALL_DIR} ${WITH_DEBUG}"
       if test "x$FEEDBACK_COMPILATION" = "xyes" ; then
         COMMAND="$COMMAND --with-extra-ldflags=-lgcov"
-      else
-        COMMAND="$COMMAND --with-extra-ldflags=-all-static"
       fi
       execute_build ${SYSBENCH_VERSION}
     fi
@@ -2584,7 +2572,7 @@ run_sysbench_step()
 set_up_ndb_index_stat()
 {
   if test "x${BENCHMARK_TO_RUN}" = "xsysbench" ; then
-    NDB_INDEX_STAT_ENABLE="0"
+    NDB_INDEX_STAT_ENABLE="1"
   elif test "x${BENCHMARK_TO_RUN}" = "xdbt2" ; then
     NDB_INDEX_STAT_ENABLE="0"
   elif test "x${BENCHMARK_TO_RUN}" = "xdbt3" ; then

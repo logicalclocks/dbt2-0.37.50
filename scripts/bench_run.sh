@@ -488,6 +488,10 @@ remove_local_binary_tar_files()
 init_clean_up()
 {
   SSH_NODE="$1"
+  if test "x$DATA_DIR_BASE" = "x" ; then
+    echo "Must set DATA_DIR_BASE in autobench.conf when starting cluster"
+    exit 1
+  fi
   if test "x${USE_DOCKER}" = "xyes" ; then
     exec_ssh_command sudo rm -rf ${DATA_DIR_BASE}/*
   else

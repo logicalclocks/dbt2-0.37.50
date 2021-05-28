@@ -453,8 +453,8 @@ run_one_test()
     ((CONNECTIONS = NUM_WAREHOUSES * LINE_TERMINALS))
     COMMAND="$COMMAND --warehouses $NUM_WAREHOUSES"
     COMMAND="$COMMAND --tot_warehouses $DBT2_WAREHOUSES"
-    if test "${DBT2_USE_ALTERED_MODE}" = "xyes" ; then
-      COMMAND="$COMMAND -use-altered-mode"
+    if test "x${DBT2_USE_ALTERED_MODE}" = "xyes" ; then
+      COMMAND="$COMMAND --use-altered-mode"
     fi
     COMMAND="$COMMAND --spread $SPREAD"
     COMMAND="$COMMAND --time $RUN_TIME"

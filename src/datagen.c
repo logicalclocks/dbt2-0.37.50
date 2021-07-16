@@ -44,6 +44,7 @@
 #define MODE_SAPDB 0
 #define MODE_PGSQL 1
 #define MODE_MYSQL 2
+#define MODE_RONDB 3
 
 void gen_customers();
 void gen_districts();
@@ -62,7 +63,7 @@ int items = ITEM_CARDINALITY;
 int orders = ORDER_CARDINALITY;
 int new_orders = NEW_ORDER_CARDINALITY;
 
-int mode_string = MODE_PGSQL;
+int mode_string = MODE_RONDB;
 char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 
@@ -75,13 +76,13 @@ char null_str[16] = "\"NULL\"";
 #define FPRINTF(a, b, c) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"", c)); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || mode_string == MODE_RONDB) { \
 		METAPRINTF((a, b, c)); \
 	}
 #define FPRINTF2(a, b) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"")); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || mode_string == MODE_RONDB) { \
 		METAPRINTF((a, b)); \
 	}
 
@@ -94,7 +95,7 @@ void escape_me(char *str)
 	int k = 0;
 
 	/* Don't need to do anything for SAP DB. */
-	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || mode_string == MODE_RONDB) {
 		strcpy(buffer, str);
 		i = strlen(buffer);
 		for (k = 0; k <= i; k++) {
@@ -112,7 +113,7 @@ void print_timestamp(FILE *ofile, struct tm *date)
 		METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || mode_string == MODE_RONDB) {
 		METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
@@ -388,10 +389,12 @@ void gen_history()
                 unsigned long long h_id = i * DISTRICT_CARDINALITY * customers;
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
-				/* h_id */
-                                h_id++;
-				FPRINTF(output, "%lld", h_id);
-				METAPRINTF((output, "%c", delimiter));
+				if (mode_string == MODE_RONDB) {
+				  /* h_id */
+                                  h_id++;
+				  FPRINTF(output, "%lld", h_id);
+				  METAPRINTF((output, "%c", delimiter));
+				}
 
 				/* h_c_id */
 				FPRINTF(output, "%d", k + 1);
@@ -980,6 +983,8 @@ int main(int argc, char *argv[])
 		printf("\tformat data for PostgreSQL\n");
 		printf("--mysql\n");
 		printf("\tformat data for MySQL\n");
+		printf("--rondb\n");
+		printf("\tformat data for RonDB\n");
 		return 1;
 	}
 
@@ -1006,6 +1011,8 @@ int main(int argc, char *argv[])
             mode_string= MODE_SAPDB;
           else if(!strcmp(argv[argvIndex],"--mysql"))
             mode_string= MODE_MYSQL;
+          else if(!strcmp(argv[argvIndex],"--rondb"))
+            mode_string= MODE_RONDB;
           else
           {
             printf("get param returned character code 0%o ??\n", c);
@@ -1039,7 +1046,8 @@ int main(int argc, char *argv[])
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}
-        else if (mode_string == MODE_MYSQL)
+        else if (mode_string == MODE_MYSQL ||
+                 mode_string == MODE_RONDB)
         {
           delimiter = ',';
           strcpy(null_str, "\\N");

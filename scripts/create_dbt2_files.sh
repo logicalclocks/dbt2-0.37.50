@@ -83,6 +83,7 @@ if test $# -gt 1 ; then
   esac
 fi
 
+LOAD_RONDB="yes"
 DEFAULT_FILE="${DEFAULT_DIR}/dbt2.conf"
 if test -f "${DEFAULT_FILE}" ; then
   . ${DEFAULT_FILE}
@@ -94,6 +95,9 @@ do
     --data_dir | --data-dir )
       shift
       DATA_DIR="${1}"
+      ;;
+    --use-mysql )
+      LOAD_RONDB="no"
       ;;
     --base_dir | --base-dir )
       shift
@@ -162,11 +166,16 @@ for ((i=FIRST_WAREHOUSE; i<LAST_WAREHOUSE; i++))
 do
   MSG="Create warehouse ${i}"
   output_msg
+  if test "x$LOAD_RONDB" = "xyes" ; then
+    DATAGEN_PARAM="--rondb"
+  else
+    DATAGEN_PARAM="--mysql"
+  fi
   mkdir -p ${DATA_DIR}/dbt2-w${i}
   if test "x$USE_RONDB" = "xyes" ; then
-    ${MYSQL_PATH}/bin/dbt2/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} --mysql
+    ${MYSQL_PATH}/bin/dbt2/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} $DATAGEN_PARAM
   else
-    ${BASE_DIR}/src/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} --mysql
+    ${BASE_DIR}/src/datagen -w 1 -d ${DATA_DIR}/dbt2-w${i} -m ${i} $DATAGEN_PARAM
   fi
 done
 exit 0

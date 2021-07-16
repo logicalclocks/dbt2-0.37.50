@@ -281,7 +281,11 @@ create_dbt2_files()
       EXEC_COMMAND="${BASE_DIR}/src/datagen"
     fi
     EXEC_COMMAND="$EXEC_COMMAND -w 1 -d ${DBT2_DATA_DIR}/dbt2-w${i}"
-    EXEC_COMMAND="$EXEC_COMMAND -m ${i} --mysql"
+    if test "x$LOAD_RONDB" = "xyes" ; then
+      EXEC_COMMAND="$EXEC_COMMAND -m ${i} --rondb"
+    else
+      EXEC_COMMAND="$EXEC_COMMAND -m ${i} --mysql"
+    fi
     execute_command
     if test "x${LINE_HOST_NAME}" != "xlocalhost" && \
        test "x${LINE_HOST_NAME}" != "x127.0.0.1" ; then
@@ -709,7 +713,7 @@ RUN_NUMBER_START=
 RUN_NUMBER_END=
 EXTRA_WARMUP=""
 DEFAULT_DIR="$HOME/.build"
-DBT2_LOADERS="8"
+DBT2_LOADERS="4"
 DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
 
   if test $# -gt 0 ; then
@@ -1047,6 +1051,9 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
   else
     COMMAND="bash $BASE_DIR/scripts/mysql_load_db.sh"
     COMMAND="${COMMAND} --ndb-connectstring ${NDB_CONNECTSTRING}"
+    if test "x$LOAD_RONDB" = "xno" ; then
+      COMMAND="$COMMAND --load-mysql"
+    fi
   fi
   COMMAND="${COMMAND} --user $MYSQL_USER"
   if test "x$MYSQL_PASSWORD" = "x" ; then

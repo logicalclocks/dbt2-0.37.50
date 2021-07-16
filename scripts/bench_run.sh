@@ -1061,6 +1061,7 @@ write_dbt2_conf()
   CONF_FILE="${DEFAULT_DIR}/dbt2.conf"
   ${ECHO} "#DBT2 configuration used to drive DBT2 benchmarks" > ${CONF_FILE}
   write_conf "USE_RONDB=\"${USE_RONDB}\""
+  write_conf "LOAD_RONDB=\"${LOAD_RONDB}\""
   write_conf "MYSQL_SERVER_BASE=\"${MYSQL_SERVER_BASE}\""
   write_conf "DBT3_USE_BOTH_NDB_AND_INNODB=\"${DBT3_USE_BOTH_NDB_AND_INNODB}\""
   write_conf "DBT3_DATA_PATH=\"${DBT3_DATA_PATH}\""
@@ -1642,7 +1643,7 @@ write_ndbd_default()
     CONFIG_LINE="RedoBuffer=$NDB_REDO_BUFFER"
     write_conf $CONFIG_LINE
   fi
-  CONFIG_LINE="TransactionDeadlockDetectionTimeout=10000"
+  CONFIG_LINE="TransactionDeadlockDetectionTimeout=$NDB_DEADLOCK_TIMEOUT"
   write_conf $CONFIG_LINE
   if test "x$NDB_LONG_MESSAGE_BUFFER" != "x" ; then
     CONFIG_LINE="LongMessageBuffer=$NDB_LONG_MESSAGE_BUFFER"
@@ -2440,6 +2441,9 @@ create_dbt2_test_files()
       COMMAND="${COMMAND} --base_dir ${SRC_INSTALL_DIR}/${DBT2_VERSION}"
       COMMAND="${COMMAND} --num_warehouses ${DBT2_WAREHOUSES}"
       COMMAND="${COMMAND} --first-warehouse 1"
+      if test "x$USE_MYSQL" = "xyes" ; then
+        COMMAND="${COMMAND} --use-mysql"
+      fi
       exec_command ${COMMAND}
     fi
   fi
@@ -2940,6 +2944,7 @@ NDB_LOCK_PAGES_IN_MAIN_MEMORY=
 NDBD_CPUS=                      # CPU's to bind for NDB Data nodes
 NDBD_BIND=                      # Bind to NUMA nodes when TASKSET=numactl
 NDBD_MEM_POLICY="interleaved"   # Use interleaved/local memory policy with numactl
+NDB_DEADLOCK_TIMEOUT="10000"
 
 #Sysbench parameters
 SYSBENCH_RESULTS=
@@ -3019,7 +3024,7 @@ DBT2_NUM_SERVERS="1"
 DBT2_TIME="90"
 DBT2_SCI=
 DBT2_SPREAD=
-DBT2_LOADERS="8"
+DBT2_LOADERS="4"
 DBT2_CREATE_LOAD_FILES="yes"
 DBT2_GENERATE_FILES="no"
 DBT2_USE_ALTERED_MODE="no"
@@ -3209,6 +3214,8 @@ SKIP_RUN=
 SYSBENCH_INSTANCES="1"
 PERFORM_INIT="no"
 USE_RONDB="yes"
+LOAD_RONDB="yes"
+USE_MYSQL="no"
 MYSQL_USER=
 MYSQL_PASSWORD=
 
@@ -3345,6 +3352,21 @@ else
   if test "x$MYSQL_USER" = "x" ; then
     MYSQL_USER="mysql"
   fi
+fi
+if test "x$USE_MYSQL" = "xyes" ; then
+  DBT2_CREATE_LOAD_FILES="no"
+  LOAD_RONDB="no"
+  DBT2_GENERATE_FILES="yes"
+  if test "x$NDB_DATA_MEMORY" = "x" ; then
+    NDB_DATA_MEMORY="$NDB_TOTAL_MEMORY"
+  fi
+  if test "x$NDB_NO_OF_FRAGMENT_LOG_FILES" = "x" ; then
+    NDB_NO_OF_FRAGMENT_LOG_FILES="16"
+  fi
+  if test "x$NDB_FRAGMENT_LOG_FILE_SIZE" = "x" ; then
+    NDB_FRAGMENT_LOG_FILE_SIZE="1G"
+  fi
+  NDB_TOTAL_MEMORY=
 fi
 set_run_oltp_script
 fix_server_host

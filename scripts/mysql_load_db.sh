@@ -92,7 +92,31 @@ command_exec()
   fi
 }
 
-load_tables()
+load_tables_mysql()
+{
+if [ "$LOAD_TABLES" == "0" ]; then
+  TABLES="item"
+else
+  TABLES="customer district history item new_order order_line orders stock warehouse"
+fi
+
+SET_BATCH_SIZE="set ndb_batch_size=2*1024*1024;"
+for TABLE in $TABLES ; do
+  COLUMN_NAMES=
+  if [ "$TABLE" = "history" ]; then
+    COLUMN_NAMES="(h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data)"
+  fi
+  if [ "$TABLE" != "item" -o "$DB_PARALLEL" != "1" -o "$LOAD_TABLES" == "0" ]; then
+    echo "Loading table $TABLE"
+    FN="$TABLE"
+    command_exec "$MYSQL $DB_NAME -e \"$SET_BATCH_SIZE LOAD DATA $LOCAL INFILE \
+              \\\"$DB_PATH/$FN.data\\\" \
+              INTO TABLE $TABLE $LATIN1 FIELDS TERMINATED BY ',' ${COLUMN_NAMES} \""
+  fi
+done
+}
+
+load_tables_rondb()
 {
 cd ${DB_PATH}
 TABLES=
@@ -340,10 +364,14 @@ EXTRA_CUST_INDEX_FIELDS=""
 ONLY_ITEM=""
 USE_MYISAM_FOR_ITEM=""
 NDB_CONNECTSTRING=
+LOAD_RONDB="yes"
 
 while test $# -gt 0
 do
   case $1 in
+  --load-mysql )
+    LOAD_RONDB="no"
+    ;;
   --only-item )
     ONLY_ITEM="1"
     ;;
@@ -543,4 +571,8 @@ create_tables
 
 # Load tables
 echo ""
-load_tables
+if test "x$LOAD_RONDB" = "xyes" ; then
+  load_tables_rondb
+else
+  load_tables_mysql
+fi

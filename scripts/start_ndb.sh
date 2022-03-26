@@ -891,10 +891,10 @@ handle_ndbd_process()
   else
     if test "x${HOSTNAME_BINARY}" != "xlocalhost" && \
        test "x${HOSTNAME_BINARY}" != "x127.0.0.1" ; then
-      COMMAND="'ulimit -c unlimited; $PRELOAD_COMMAND $NDBD_CMD $NDB_CONNECTSTRING \
+      COMMAND="'${NDBD_CMD} ulimit -c unlimited; $PRELOAD_COMMAND \$NDBD $NDB_CONNECTSTRING \
         $INITIAL $NDB_NODEID $CORE_FILE_OPTIONS'"
     else
-      COMMAND="ulimit -c unlimited; $PRELOAD_COMMAND $NDBD_CMD $NDB_CONNECTSTRING \
+      COMMAND="${NDBD_CMD} ulimit -c unlimited; $PRELOAD_COMMAND \$NDBD $NDB_CONNECTSTRING \
         $INITIAL $NDB_NODEID $CORE_FILE_OPTIONS"
     fi
     if test "x$NDB_REALTIME_SCHEDULER" = "xyes" ; then
@@ -1829,6 +1829,7 @@ SOCKET_OPTION="--socket=${DATA_DIR}/mysql_$MYSQL_NO.sock"
 PID_FILE="$TMP_BASE/mysqld_$MYSQL_NO.pid"
 LOG_ERROR="--log-error=${DATA_DIR}/error.log"
 TMP_DIR="--tmpdir=$TMP_BASE"
+mkdir -p ${DATA_DIR}
 
 handle_language
 

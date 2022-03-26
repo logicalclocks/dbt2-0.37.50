@@ -523,7 +523,11 @@ run_oltp_complex()
   if test "x$USE_MALLOC_LIB" = "xyes" ; then
     MALLOC_FILE=`basename "${MALLOC_LIB}"`
     MALLOC_PATH=`dirname "${MALLOC_LIB}"`
-    PRELOAD_COMMAND="export LD_PRELOAD=${MALLOC_FILE}"
+    if test "x$USE_SUPERSOCKET" = "xyes" ; then
+      PRELOAD_COMMAND="export LD_PRELOAD='${MALLOC_FILE} libksupersockets.so'"
+    else
+      PRELOAD_COMMAND="export LD_PRELOAD=${MALLOC_FILE}"
+    fi
     SET_LD_LIB_PATH_CMD="export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MALLOC_PATH}"
     PRELOAD_COMMAND="${SET_LD_LIB_PATH_CMD} ; ${PRELOAD_COMMAND}"
     SET_DYLD_LIB_PATH_CMD="export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MALLOC_PATH}"
@@ -532,6 +536,10 @@ run_oltp_complex()
       PRELOAD_COMMAND="export MALLOC_CONF=lg_dirty_mult:-1 ; $PRELOAD_COMMAND"
     fi
     SYSBENCH_COMMAND="${PRELOAD_COMMAND} ${SYSBENCH_COMMAND}"
+  else
+    if test "x$USE_SUPERSOCKET" = "xyes" ; then
+      SYSBENCH_COMMAND="export LD_PRELOAD=libksupersockets.so; ${SYSBENCH_COMMAND}"
+    fi
   fi
   if test "x${MYSQL_CREATE_OPTIONS}" != "x" ; then
     if test "x${VERBOSE}" = "xyes" ; then 

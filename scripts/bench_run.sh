@@ -338,7 +338,7 @@ build_mysql()
   BUILD_COMMAND="$BUILD_COMMAND -DCMAKE_INSTALL_PREFIX=$MYSQL_INSTALL_DIR"
   exec_command cd BUILD
   exec_command $BUILD_COMMAND ..
-  exec_command ${MAKE} -j ${COMPILER_PARALLELISM}
+  exec_command ${MAKE} -j 8
   exec_command ${MAKE} install
   exec_command cd ..
   exec_command $CP $SRC_INSTALL_DIR/$DBT2_VERSION/scripts/init_file.sql $MYSQL_INSTALL_DIR/bin/.
@@ -540,9 +540,6 @@ clean_up_local_src_sysbench()
 
 build_mysql_binaries()
 {
-  if test "x$COMPILER_PARALLELISM" != "x" ; then
-    COMPILER_PARALLELISM="--parallelism=${COMPILER_PARALLELISM}"
-  fi
   MYSQL_INSTALL_DIR=${BIN_INSTALL_DIR}/${MYSQL_VERSION}
   if test "x${PERFORM_BUILD_LOCAL}" = "xyes" ; then
     if test "x${PERFORM_BUILD_MYSQL}" = "xyes" ; then
@@ -990,7 +987,7 @@ write_iclaustron_conf()
     write_conf "NDB_CONFIG_FILE=\"${NDB_CONFIG_FILE}\""
     write_conf "USE_NDBMTD=\"${USE_NDBMTD}\""
     write_conf "NDB_START_MAX_WAIT=\"${NDB_START_MAX_WAIT}\""
-    write_conf "NUM_NDB_NODES=\"${NUM_NDB_NODES}\""
+    write_conf "NUM_NDBD_NODES=\"${NUM_NDBD_NODES}\""
     write_conf "NDB_RESTART_TEST=\"${NDB_RESTART_TEST}\""
     write_conf "NDB_RESTART_NODE=\"${NDB_RESTART_NODE}\""
     write_conf "NDB_RESTART_NODE2=\"${NDB_RESTART_NODE2}\""
@@ -1327,12 +1324,12 @@ set_up_ndb_server_port()
   if test "x${NDB_SERVER_PORT}" != "x" ; then
     NDB_SERVER_PORT_LOC=(`${ECHO} ${NDB_SERVER_PORT} | ${SED} -e 's!\;! !g'`)
     if test "x${#NDB_SERVER_PORT_LOC[*]}" = "x1" ; then
-      for ((i_sunec = 0; i_sunec < NUM_NDB_NODES; i_sunec += 1))
+      for ((i_sunec = 0; i_sunec < NUM_NDBD_NODES; i_sunec += 1))
       do
         NDB_SERVER_PORT_LOC[${i_sunec}]=$NDB_SERVER_PORT
       done
     else
-      if test "x${#NDB_SERVER_PORT_LOC[*]}" != "x$NUM_NDB_NODES" ; then
+      if test "x${#NDB_SERVER_PORT_LOC[*]}" != "x$NUM_NDBD_NODES" ; then
         echo "NDB_SERVER_PORT need as many parameters as there are NDB nodes or 1 parameter"
         exit 1
       fi
@@ -1345,12 +1342,12 @@ set_up_ndb_execute_cpu()
   if test "x${NDB_EXECUTE_CPU}" != "x" ; then
     NDB_EXECUTE_CPU_LOC=(`${ECHO} ${NDB_EXECUTE_CPU} | ${SED} -e 's!\;! !g'`)
     if test "x${#NDB_EXECUTE_CPU_LOC[*]}" = "x1" ; then
-      for ((i_sunec = 0; i_sunec < NUM_NDB_NODES; i_sunec += 1))
+      for ((i_sunec = 0; i_sunec < NUM_NDBD_NODES; i_sunec += 1))
       do
         NDB_EXECUTE_CPU_LOC[${i_sunec}]=$NDB_EXECUTE_CPU
       done
     else
-      if test "x${#NDB_EXECUTE_CPU_LOC[*]}" != "x$NUM_NDB_NODES" ; then
+      if test "x${#NDB_EXECUTE_CPU_LOC[*]}" != "x$NUM_NDBD_NODES" ; then
         echo "NDB_EXECUTE_CPU need as many parameters as there are NDB nodes or 1 parameter"
         exit 1
       fi
@@ -1363,12 +1360,12 @@ set_up_ndb_maint_cpu()
   if test "x${NDB_MAINT_CPU}" != "x" ; then
     NDB_MAINT_CPU_LOC=(`${ECHO} ${NDB_MAINT_CPU} | ${SED} -e 's!\;! !g'`)
     if test "x${#NDB_MAINT_CPU_LOC[*]}" = "x1" ; then
-      for ((i_sunmc = 0; i_sunmc < NUM_NDB_NODES; i_sunmc += 1))
+      for ((i_sunmc = 0; i_sunmc < NUM_NDBD_NODES; i_sunmc += 1))
       do
         NDB_MAINT_CPU_LOC[${i_sunmc}]=$NDB_MAINT_CPU
       done
     else
-      if test "x${#NDB_MAINT_CPU_LOC[*]}" != "x$NUM_NDB_NODES" ; then
+      if test "x${#NDB_MAINT_CPU_LOC[*]}" != "x$NUM_NDBD_NODES" ; then
         echo "NDB_MAINT_CPU need as many parameters as there are NDB nodes or 1 parameter"
         exit 1
       fi
@@ -1381,12 +1378,12 @@ set_up_ndb_thread_config()
   if test "x${NDB_THREAD_CONFIG}" != "x" ; then
     NDB_THREAD_CONFIG_LOC=(`${ECHO} ${NDB_THREAD_CONFIG} | ${SED} -e 's!\;! !g'`)
     if test "x${#NDB_THREAD_CONFIG_LOC[*]}" = "x1" ; then
-      for ((i_suntc = 0; i_suntc < NUM_NDB_NODES; i_suntc += 1))
+      for ((i_suntc = 0; i_suntc < NUM_NDBD_NODES; i_suntc += 1))
       do
         NDB_THREAD_CONFIG_LOC[${i_suntc}]=${NDB_THREAD_CONFIG}
       done
     else
-      if test "x${#NDB_THREAD_CONFIG_LOC[*]}" != "x$NUM_NDB_NODES" ; then
+      if test "x${#NDB_THREAD_CONFIG_LOC[*]}" != "x$NUM_NDBD_NODES" ; then
         echo "NDB_THREAD_CONFIG need as many parameters as there are NDB nodes or 1 parameter"
         exit 1
       fi
@@ -1399,12 +1396,12 @@ set_up_ndb_max_no_of_execution_threads()
   if test "x${NDB_MAX_NO_OF_EXECUTION_THREADS}" != "x" ; then
     NDB_MAX_NO_OF_EXECUTION_THREADS_LOC=(`${ECHO} ${NDB_MAX_NO_OF_EXECUTION_THREADS} | ${SED} -e 's!\;! !g'`)
     if test "x${#NDB_MAX_NO_OF_EXECUTION_THREADS_LOC[*]}" = "x1" ; then
-      for ((i_sunmnoet = 0; i_sunmnoet < NUM_NDB_NODES; i_sunmnoet += 1))
+      for ((i_sunmnoet = 0; i_sunmnoet < NUM_NDBD_NODES; i_sunmnoet += 1))
       do
         NDB_MAX_NO_OF_EXECUTION_THREADS_LOC[${i_sunmnoet}]=$NDB_MAX_NO_OF_EXECUTION_THREADS
       done
     else
-      if test "x${#NDB_MAX_NO_OF_EXECUTION_THREADS_LOC[*]}" != "x$NUM_NDB_NODES" ; then
+      if test "x${#NDB_MAX_NO_OF_EXECUTION_THREADS_LOC[*]}" != "x$NUM_NDBD_NODES" ; then
         echo "NDB_MAX_NO_OF_EXECUTION_THREADS need as many parameters as there are NDB nodes or 1 parameter"
         exit 1
       fi
@@ -1438,6 +1435,10 @@ write_mysqld_default()
 {
   CONFIG_LINE="[MYSQLD DEFAULT]"
   write_conf $CONFIG_LINE
+  if test "x$NDB_USE_ONLY_IPV4" = "xyes" ; then
+    CONFIG_LINE="UseOnlyIPv4=1"
+    write_conf $CONFIG_LINE
+  fi
 #  CONFIG_LINE="BatchSize=128"
 #  write_conf $CONFIG_LINE
 #  CONFIG_LINE="DefaultOperationRedoProblemAction=abort"
@@ -1448,6 +1449,10 @@ write_ndbd_default()
 {
   CONFIG_LINE="[NDBD DEFAULT]"
   write_conf $CONFIG_LINE
+  if test "x$NDB_USE_ONLY_IPV4" = "xyes" ; then
+    CONFIG_LINE="UseOnlyIPv4=1"
+    write_conf $CONFIG_LINE
+  fi
   if test "x$USE_SHM" = "xyes" ; then
     CONFIG_LINE="UseShm=1"
     write_conf $CONFIG_LINE
@@ -1702,12 +1707,12 @@ write_ndbd_default()
       write_conf $CONFIG_LINE
     fi
   fi
-  NUM_NDB_NODES="0"
+  NUM_NDBD_NODES="0"
   for NDBD_NODE in $NDBD_NODES
   do
-    ((NUM_NDB_NODES+= 1))
+    ((NUM_NDBD_NODES+= 1))
   done
-  if test "x$NUM_NDB_NODES" = "x1" ; then
+  if test "x$NUM_NDBD_NODES" = "x1" ; then
     NDB_REPLICAS="1"
   fi
   CONFIG_LINE="NoOfReplicas=$NDB_REPLICAS"
@@ -1762,10 +1767,10 @@ write_mgmd_nodes()
 
 write_ndbd_nodes()
 {
-  NUM_NDB_NODES="0"
+  NUM_NDBD_NODES="0"
   for NDBD_NODE in $NDBD_NODES
   do
-    ((NUM_NDB_NODES+= 1))
+    ((NUM_NDBD_NODES+= 1))
   done
   set_up_ndb_server_port
   set_up_ndb_execute_cpu
@@ -2826,7 +2831,6 @@ SED=sed
 CAT=cat
 MAKE=
 FEEDBACK_PREPARED="no"
-COMPILER_PARALLELISM="16"
 
 #Sleep parameters for sysbench
 BETWEEN_RUNS="1"              # Time between runs to avoid checkpoints
@@ -2945,6 +2949,7 @@ NDBD_CPUS=                      # CPU's to bind for NDB Data nodes
 NDBD_BIND=                      # Bind to NUMA nodes when TASKSET=numactl
 NDBD_MEM_POLICY="interleaved"   # Use interleaved/local memory policy with numactl
 NDB_DEADLOCK_TIMEOUT="10000"
+NDB_USE_ONLY_IPV4="no"
 
 #Sysbench parameters
 SYSBENCH_RESULTS=
@@ -3009,7 +3014,6 @@ BENCHMARK_MEM_POLICY="local"
 #Compiler to use, default is gcc
 COMPILER=""
 USE_DBT2_BUILD="yes"
-COMPILER_PARALLELISM=
 
 #Defaults for DBT2 parameters
 DBT2_PARTITION_TYPE="KEY"

@@ -732,7 +732,6 @@ if test "x$NDB_ENABLED" = "xyes" ; then
   NDBD_CMD="${NDBD_CMD}  echo \"No ${NDBD_BINARY} binary in path\";"
   NDBD_CMD="${NDBD_CMD}  exit 1;"
   NDBD_CMD="${NDBD_CMD}fi;"
-  NDBD_CMD="${NDBD_CMD}\${NDBD}"
   NDB_MGMD_CMD="${NDB_MGMD_CMD}if test \"x\${NDB_MGMD}\" = \"x\" ; then"
   NDB_MGMD_CMD="${NDB_MGMD_CMD}  echo \"No ndb_mgmd binary in path\";"
   NDB_MGMD_CMD="${NDB_MGMD_CMD}  exit 1;"

@@ -455,6 +455,10 @@ set_mysqld_args()
     if test "x$BINLOG" != "x" ; then
       MYSQLD_ARGS="$MYSQLD_ARGS --log-bin='${BINLOG}_${MYSQL_NO}'"
       MYSQLD_ARGS="$MYSQLD_ARGS --sync-binlog=$SYNC_BINLOG"
+      MYSQLD_ARGS="$MYSQLD_ARGS --binlog-format=MIXED"
+      MYSQLD_ARGS="$MYSQLD_ARGS --ndb-log-bin=1"
+      MYSQLD_ARGS="$MYSQLD_ARGS --binlog-cache-size=1M"
+      MYSQLD_ARGS="$MYSQLD_ARGS --ndb-log-empty-epochs=ON"
       if test "x$MYSQL_SERVER_BASE" = "x5.7" || \
          test "x$MYSQL_SERVER_BASE" = "x8.0" ; then
         if test "x$BINLOG_GROUP_COMMIT_DELAY" != "x0" ; then

@@ -1061,7 +1061,7 @@ DBT2_INTERMEDIATE_TIMER_RESOLUTION="0"
       COMMAND="${COMMAND} --password password"
     fi
   else
-    COMMAND="$COMMAND -p'$MYSQL_PASSWORD'"
+    COMMAND="$COMMAND --password $MYSQL_PASSWORD"
   fi
   if test "x$USE_RONDB"  != "xyes" ; then
     if test "x$LD_LIBRARY_PATH" = "x" ; then

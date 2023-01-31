@@ -1680,11 +1680,11 @@ else
   if test "x${BENCHMARK}" = "xflexAsynch" ; then
     run_flexAsynch
   elif test "x${BENCHMARK}" = "xdbt2" ; then
+    if test "x${SKIP_LOAD_DBT2}" != "xyes" ; then
+      create_dbt2_sp
+      load_dbt2_database
+    fi
     if test "x${SKIP_RUN}" != "xyes" ; then
-      if test "x${SKIP_LOAD_DBT2}" != "xyes" ; then
-        create_dbt2_sp
-        load_dbt2_database
-      fi
       run_dbt2
     fi
   else

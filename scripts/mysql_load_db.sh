@@ -137,6 +137,7 @@ fi
 COMMAND_OPTIONS="--fields-terminated-by=','"
 COMMAND_OPTIONS="${COMMAND_OPTIONS} --state-dir=${DB_PATH}"
 COMMAND_OPTIONS="${COMMAND_OPTIONS} --ndb-connectstring ${NDB_CONNECTSTRING}"
+COMMAND_OPTIONS="${COMMAND_OPTIONS} --use-auto-increment=1"
 command_exec "${NDB_IMPORT} ${DB_NAME} ${TABLES} ${COMMAND_OPTIONS}"
 }
 

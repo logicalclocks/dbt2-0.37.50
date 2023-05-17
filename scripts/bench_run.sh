@@ -2709,27 +2709,26 @@ run_sysbench()
         TEST_FILE_NAME="${RESULT_DIR}/${SYSBENCH_TEST}_${i2}_${i1}.res"
         ${ECHO} "Running ${SYSBENCH_TEST} in instance ${i2} and in run ${i1}" > ${TEST_FILE_NAME}
       done
-
+      SYSBENCH_TEST_NUMBER="${i1}"
+# Perform prepare step (Create tables and fill them)
+      calc_num_server_instances
+      SYSBENCH_STEP="prepare"
+      PARALLELIZE="no"
+      run_sysbench_step
       for THREAD_COUNT in ${THREAD_COUNTS_TO_RUN}
       do
-        SYSBENCH_TEST_NUMBER="${i1}"
-# Perform prepare step (Create tables and fill them)
-        calc_num_server_instances
-        SYSBENCH_STEP="prepare"
-        PARALLELIZE="no"
-        run_sysbench_step
         ${SLEEP} ${BETWEEN_RUNS}
 # Perform benchmark step (Run actual benchmark)
         calc_num_server_instances
         SYSBENCH_STEP="run"
         PARALLELIZE="yes"
         run_sysbench_step
-# Perform cleanup step (Delete tables)
-        calc_num_server_instances
-        SYSBENCH_STEP="cleanup"
-        PARALLELIZE="no"
-        run_sysbench_step
       done
+# Perform cleanup step (Delete tables)
+      calc_num_server_instances
+      SYSBENCH_STEP="cleanup"
+      PARALLELIZE="no"
+      run_sysbench_step
     done
     SAVE_SYSBENCH_INSTANCES="${SYSBENCH_INSTANCES}"
     SYSBENCH_TEST_NUMBER="$SYSBENCH_INSTANCES"

@@ -1228,6 +1228,8 @@ write_sysbench_conf()
   write_conf "SB_USE_RANGE=\"${SB_USE_RANGE}\""
   write_conf "SB_NUM_PARTITIONS=\"${SB_NUM_PARTITIONS}\""
   write_conf "SB_NUM_TABLES=\"${SB_NUM_TABLES}\""
+  write_conf "SB_USE_LEFT_OUTER_JOIN_STAR=\"${SB_USE_LEFT_OUTER_JOIN_STAR}\""
+  write_conf "SB_USE_LEFT_OUTER_JOIN_FK=\"${SB_USE_LEFT_OUTER_JOIN_FK}\""
   write_conf "THREAD_COUNTS_TO_RUN=\"${THREAD_COUNTS_TO_RUN}\""
   write_conf "ENGINE=\"${ENGINE}\""
   write_conf "SB_AVOID_DEADLOCKS=\"${SB_AVOID_DEADLOCKS}\""
@@ -1259,15 +1261,30 @@ write_sysbench_conf()
   write_conf "TRX_ENGINE=\"${TRX_ENGINE}\""
   if test "x$SB_USE_AUTO_INC" = "xyes" ; then
     SB_USE_AUTO_INC="on"
+    SB_USE_FILTER="off"
+    SB_USE_LEFT_OUTER_JOIN_STAR="off"
+    SB_USE_LEFT_OUTER_JOIN_FK="off"
   else
     if test "x$SB_USE_FILTER" = "xyes" ; then
       SB_USE_FILTER="on"
     else
       SB_USE_FILTER="off"
     fi
+    if test "x$SB_USE_LEFT_OUTER_JOIN_STAR" = "xyes" ; then
+      SB_USE_LEFT_OUTER_JOIN_STAR="on"
+    else
+      SB_USE_LEFT_OUTER_JOIN_STAR="off"
+    fi
+    if test "x$SB_USE_LEFT_OUTER_JOIN_FK" = "xyes" ; then
+      SB_USE_LEFT_OUTER_JOIN_FK="on"
+    else
+      SB_USE_LEFT_OUTER_JOIN_FK="off"
+    fi
     SB_USE_AUTO_INC="off"
   fi
   write_conf "SB_USE_FILTER=\"${SB_USE_FILTER}\""
+  write_conf "SB_USE_LEFT_OUTER_JOIN_STAR=\"${SB_USE_LEFT_OUTER_JOIN_STAR}\""
+  write_conf "SB_USE_LEFT_OUTER_JOIN_FK=\"${SB_USE_LEFT_OUTER_JOIN_FK}\""
   write_conf "SB_POINT_SELECTS=\"${SB_POINT_SELECTS}\""
   write_conf "SB_RANGE_SIZE=\"${SB_RANGE_SIZE}\""
   write_conf "SB_SIMPLE_RANGES=\"${SB_SIMPLE_RANGES}\""
@@ -2706,6 +2723,7 @@ run_sysbench()
       for ((i2 = 0; i2 < SYSBENCH_INSTANCES; i2++))
       do
         RESULT_DIR="${DEFAULT_DIR}/sysbench_results"
+        mkdir -p i${RESULT_DIR}
         TEST_FILE_NAME="${RESULT_DIR}/${SYSBENCH_TEST}_${i2}_${i1}.res"
         ${ECHO} "Running ${SYSBENCH_TEST} in instance ${i2} and in run ${i1}" > ${TEST_FILE_NAME}
       done
@@ -2714,6 +2732,7 @@ run_sysbench()
       calc_num_server_instances
       SYSBENCH_STEP="prepare"
       PARALLELIZE="no"
+      THREAD_COUNT="1"
       run_sysbench_step
       for THREAD_COUNT in ${THREAD_COUNTS_TO_RUN}
       do
@@ -2728,6 +2747,7 @@ run_sysbench()
       calc_num_server_instances
       SYSBENCH_STEP="cleanup"
       PARALLELIZE="no"
+      THREAD_COUNT="1"
       run_sysbench_step
     done
     SAVE_SYSBENCH_INSTANCES="${SYSBENCH_INSTANCES}"
@@ -2968,6 +2988,8 @@ SB_USE_MYSQL_HANDLER="no" # Use MySQL Handler statements for point selects
 SB_NUM_PARTITIONS="0"    # Number of partitions to use in Sysbench test table
 SB_USE_RANGE="no"        # If number of partitions set, use range otherwise key
 SB_NUM_TABLES="1"        # Number of test tables
+SB_USE_LEFT_OUTER_JOIN_STAR="no" # Replace PK lookups with a LEFT OUTER JOIN with star schema
+SB_USE_LEFT_OUTER_JOIN_FK="no"   # Replace PK lookups with a LEFT OUTER JOIN with FKs
 SB_USE_FAST_GCC="yes"    # If set to "y" will use -O3 and -m64 in compiling
 SB_TX_RATE=              # Use fixed transaction rate
 SB_TX_JITTER=            # Use jitter of transaction rate

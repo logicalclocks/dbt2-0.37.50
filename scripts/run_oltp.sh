@@ -435,6 +435,8 @@ run_oltp_complex()
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-test-mode=complex"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-read-only=off"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-filter=$SB_USE_FILTER"
+    SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-left-outer-join-star=$SB_USE_LEFT_OUTER_JOIN_STAR"
+    SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-left-outer-join-fk=$SB_USE_LEFT_OUTER_JOIN_FK"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-point-selects=$SB_POINT_SELECTS"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-range-size=$SB_RANGE_SIZE"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-simple-ranges=$SB_SIMPLE_RANGES"
@@ -464,6 +466,8 @@ run_oltp_complex()
     fi
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-read-only=on"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-filter=$SB_USE_FILTER"
+    SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-left-outer-join-star=$SB_USE_LEFT_OUTER_JOIN_STAR"
+    SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-use-left-outer-join-fk=$SB_USE_LEFT_OUTER_JOIN_FK"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-point-selects=$SB_POINT_SELECTS"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-range-size=$SB_RANGE_SIZE"
     SYSBENCH_COMMAND="${SYSBENCH_COMMAND} --oltp-simple-ranges=$SB_SIMPLE_RANGES"
